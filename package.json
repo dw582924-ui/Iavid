@@ -1,0 +1,29 @@
+{
+  "name": "iavid",
+  "version": "1.0.0",
+  "description": "IAVID - Inteligencia Artificial en Videojuegos",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build:analytics": "esbuild analytics.js --bundle --format=esm --outfile=analytics.bundle.js",
+    "build": "npm run build:analytics",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dw582924-ui/Iavid.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dw582924-ui/Iavid/issues"
+  },
+  "homepage": "https://github.com/dw582924-ui/Iavid#readme",
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.1"
+  }
+}
