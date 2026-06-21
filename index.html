@@ -58,8 +58,8 @@
         </div>
         <div class="hidden md:flex space-x-8 text-sm font-medium tracking-wide">
             <a href="#" class="hover:text-rgbCyan transition-colors">Inicio</a>
-            <a href="#articulos-seccion" class="hover:text-rgbPurple transition-colors">Artículos</a>
-            <a href="#articulos-seccion" class="hover:text-rgbNeon transition-colors">Guías Prácticas</a>
+            <a href="#articulos-seccion" onclick="filtrarArticulosPorGrupo('articulos')" class="hover:text-rgbPurple transition-colors">Artículos</a>
+            <a href="#articulos-seccion" onclick="filtrarArticulosPorGrupo('guias')" class="hover:text-rgbNeon transition-colors">Guías Prácticas</a>
             <a href="#feedback-seccion" class="text-gray-400 hover:text-white transition-colors">Dar Feedback</a>
         </div>
         <div class="flex items-center gap-3">
@@ -83,6 +83,7 @@
                 class="bg-gamingGray border border-gray-700 px-3 py-2 rounded-md font-bold text-xs tracking-wider uppercase hover:border-rgbCyan transition-all">
                 Ingresar
             </button>
+        </div>
     </nav>
 
     <!-- ========================================== -->
@@ -99,7 +100,7 @@
                 Explora cómo las mecánicas avanzadas de comportamiento de NPCs y sistemas interactivos transforman los mundos virtuales. Aprende las metodologías para lograr una verdadera inmersión jugable.
             </p>
             <div class="flex flex-wrap gap-4 pt-2">
-                <a href="#articulos-seccion" class="bg-gamingGray border-2 border-rgbPurple px-6 py-3 rounded-lg font-bold hover:shadow-rgb-glow transition-all flex items-center space-x-2 group">
+                <a href="#articulos-seccion" onclick="filtrarArticulosPorGrupo('todos')" class="bg-gamingGray border-2 border-rgbPurple px-6 py-3 rounded-lg font-bold hover:shadow-rgb-glow transition-all flex items-center space-x-2 group">
                     <span>Explorar Contenido</span>
                     <i data-lucide="arrow-right" class="w-4 h-4 text-rgbCyan group-hover:translate-x-1 transition-transform"></i>
                 </a>
@@ -107,8 +108,8 @@
         </div>
         <div class="relative group">
             <div class="absolute -inset-1 bg-gradient-to-r from-rgbPurple via-rgbCyan to-rgbNeon rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
-            <div class="relative bg-gamingGray rounded-2xl border border-gray-800 overflow-hidden shadow-2xl">
-                <div class="bg-black/40 px-4 py-2 flex items-center justify-between border-b border-gray-800">
+            <div id="hero-caja-exterior" class="relative bg-gamingGray rounded-2xl border border-gray-800 overflow-hidden shadow-2xl">
+                <div id="hero-barra-terminal" class="bg-black/40 px-4 py-2 flex items-center justify-between border-b border-gray-800">
                     <div class="flex space-x-1.5">
                         <div class="w-3 h-3 rounded-full bg-red-500/70"></div>
                         <div class="w-3 h-3 rounded-full bg-yellow-500/70"></div>
@@ -127,7 +128,7 @@
                 </div>
                 <!-- Botón de gestión, solo visible para staff -->
                 <button data-rol-visible="staff" onclick="abrirModalHeroMedia()"
-                    class="hidden absolute top-12 right-3 z-10 bg-black/60 hover:bg-black/80 border border-rgbCyan/40 text-rgbCyan text-xs px-3 py-1.5 rounded-md font-semibold backdrop-blur-sm transition-all">
+                    class="hidden absolute top-3 right-3 z-10 bg-black/60 hover:bg-black/80 border border-rgbCyan/40 text-rgbCyan text-xs px-3 py-1.5 rounded-md font-semibold backdrop-blur-sm transition-all">
                     <i data-lucide="image-plus" class="w-3.5 h-3.5 inline-block mr-1"></i>Editar media
                 </button>
             </div>
@@ -166,8 +167,12 @@
     <section id="articulos-seccion" class="max-w-7xl mx-auto px-6 py-16 space-y-12">
         <div class="flex flex-wrap justify-between items-start gap-4">
             <div>
-                <h2 class="text-2xl font-extrabold tracking-tight">Análisis y Guías Pedagógicas</h2>
+                <h2 id="articulos-titulo-seccion" class="text-2xl font-extrabold tracking-tight">Análisis y Guías Pedagógicas</h2>
                 <p class="text-gray-400 text-sm mt-1">Haz clic en cualquier tarjeta para abrir e inspeccionar el contenido técnico.</p>
+                <div id="filtro-activo-chip" class="hidden mt-3 inline-flex items-center gap-2 bg-rgbPurple/20 border border-rgbPurple/40 text-rgbPurple text-xs font-semibold px-3 py-1.5 rounded-full">
+                    <span id="filtro-activo-texto"></span>
+                    <button onclick="limpiarFiltroArticulos()" class="hover:text-white"><i data-lucide="x" class="w-3 h-3"></i></button>
+                </div>
             </div>
             <button onclick="abrirModalGuiasCompletas()" class="bg-gamingGray border border-rgbCyan/40 hover:border-rgbCyan text-rgbCyan text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all">
                 <i data-lucide="library" class="w-4 h-4"></i>
@@ -1078,6 +1083,8 @@ async function cargarHeroMedia() {
 
 function renderizarHeroMedia(data) {
     const contenedor = document.getElementById('hero-media-contenedor');
+    const cajaExterior = document.getElementById('hero-caja-exterior');
+    const barraTerminal = document.getElementById('hero-barra-terminal');
     if (!contenedor) return;
 
     // Limpia cualquier carrusel anterior corriendo
@@ -1086,8 +1093,20 @@ function renderizarHeroMedia(data) {
         intervaloCarruselHero = null;
     }
 
-    // Sin media: deja el placeholder que ya está en el HTML
-    if (!data || data.tipo === 'ninguno') return;
+    // Sin media: deja el placeholder que ya está en el HTML, con
+    // su marco/terminal originales restaurados.
+    if (!data || data.tipo === 'ninguno') {
+        if (barraTerminal) barraTerminal.classList.remove('hidden');
+        if (cajaExterior) cajaExterior.classList.add('border', 'border-gray-800');
+        contenedor.classList.add('p-6');
+        return;
+    }
+
+    // Con media real: oculta la barra de terminal y el borde/padding
+    // para que la foto/video llene el recuadro sin marco visible.
+    if (barraTerminal) barraTerminal.classList.add('hidden');
+    if (cajaExterior) cajaExterior.classList.remove('border', 'border-gray-800');
+    contenedor.classList.remove('p-6');
 
     if (data.tipo === 'video' && data.video_ruta) {
         const url = obtenerUrlPublica(data.video_ruta);
@@ -1467,15 +1486,65 @@ async function alternarLikeArticuloActual() {
         }
 
         // ============================================================
+        // FILTRO POR GRUPO DE CATEGORÍA (Artículos / Guías / Todos)
+        // ============================================================
+        // "articulos" = Análisis de IA + Lógica e Implementación
+        // "guias"     = Tutorial de Inmersión
+        // "todos"     = sin filtro (Explorar Contenido)
+        let grupoFiltroActivo = 'todos';
+
+        const CATEGORIAS_POR_GRUPO = {
+            articulos: ['Análisis de IA', 'Lógica e Implementación'],
+            guias: ['Tutorial de Inmersión']
+        };
+
+        function filtrarArticulosPorGrupo(grupo) {
+            grupoFiltroActivo = grupo;
+            renderizarArticulos();
+
+            const chip = document.getElementById('filtro-activo-chip');
+            const texto = document.getElementById('filtro-activo-texto');
+            const titulo = document.getElementById('articulos-titulo-seccion');
+
+            if (grupo === 'todos') {
+                chip.classList.add('hidden');
+                titulo.textContent = 'Análisis y Guías Pedagógicas';
+            } else if (grupo === 'articulos') {
+                chip.classList.remove('hidden');
+                texto.textContent = 'Filtrando: Artículos';
+                titulo.textContent = 'Artículos';
+            } else if (grupo === 'guias') {
+                chip.classList.remove('hidden');
+                texto.textContent = 'Filtrando: Guías Prácticas';
+                titulo.textContent = 'Guías Prácticas';
+            }
+            lucide.createIcons();
+        }
+
+        function limpiarFiltroArticulos() {
+            filtrarArticulosPorGrupo('todos');
+        }
+
+        // ============================================================
         // RENDER DE TARJETAS (combinando estáticos + dinámicos)
         // ============================================================
         function renderizarArticulos() {
             const contenedor = document.getElementById('contenedor-articulos');
             contenedor.innerHTML = '';
-            const todosLosArticulos = formatearTodosLosArticulos();
-            todosLosArticulos.forEach(articulo => {
-                contenedor.innerHTML += renderizarTarjetaArticulo(articulo);
-            });
+            let todosLosArticulos = formatearTodosLosArticulos();
+
+            if (grupoFiltroActivo !== 'todos') {
+                const categoriasPermitidas = CATEGORIAS_POR_GRUPO[grupoFiltroActivo] || [];
+                todosLosArticulos = todosLosArticulos.filter(a => categoriasPermitidas.includes(a.categoria));
+            }
+
+            if (todosLosArticulos.length === 0) {
+                contenedor.innerHTML = '<p class="text-gray-500 text-sm col-span-full text-center py-8">No hay publicaciones en esta categoría todavía.</p>';
+            } else {
+                todosLosArticulos.forEach(articulo => {
+                    contenedor.innerHTML += renderizarTarjetaArticulo(articulo);
+                });
+            }
             lucide.createIcons();
         }
 
