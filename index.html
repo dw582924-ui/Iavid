@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IAVID - Inteligencia Artificial en Videojuegos</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -82,7 +83,6 @@
                 class="bg-gamingGray border border-gray-700 px-3 py-2 rounded-md font-bold text-xs tracking-wider uppercase hover:border-rgbCyan transition-all">
                 Ingresar
             </button>
-        </div>
     </nav>
 
     <!-- ========================================== -->
@@ -147,12 +147,32 @@
     </section>
 
     <!-- ========================================== -->
+    <!-- SECCIÓN: TOP 6 CON MÁS REACCIONES          -->
+    <!-- ========================================== -->
+    <section id="top-reacciones-seccion" class="max-w-7xl mx-auto px-6 pt-16 space-y-6 hidden">
+        <div>
+            <h2 class="text-2xl font-extrabold tracking-tight flex items-center gap-2">
+                <i data-lucide="flame" class="w-5 h-5 text-rgbNeon"></i>
+                Lo más reaccionado
+            </h2>
+            <p class="text-gray-400 text-sm mt-1">Los 6 artículos con más reacciones de la comunidad.</p>
+        </div>
+        <div id="contenedor-top-reacciones" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+    </section>
+
+    <!-- ========================================== -->
     <!-- SECCIÓN DE ARTÍCULOS                       -->
     <!-- ========================================== -->
     <section id="articulos-seccion" class="max-w-7xl mx-auto px-6 py-16 space-y-12">
-        <div>
-            <h2 class="text-2xl font-extrabold tracking-tight">Análisis y Guías Pedagógicas</h2>
-            <p class="text-gray-400 text-sm mt-1">Haz clic en cualquier tarjeta para abrir e inspeccionar el contenido técnico.</p>
+        <div class="flex flex-wrap justify-between items-start gap-4">
+            <div>
+                <h2 class="text-2xl font-extrabold tracking-tight">Análisis y Guías Pedagógicas</h2>
+                <p class="text-gray-400 text-sm mt-1">Haz clic en cualquier tarjeta para abrir e inspeccionar el contenido técnico.</p>
+            </div>
+            <button onclick="abrirModalGuiasCompletas()" class="bg-gamingGray border border-rgbCyan/40 hover:border-rgbCyan text-rgbCyan text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all">
+                <i data-lucide="library" class="w-4 h-4"></i>
+                Ver guías completas
+            </button>
         </div>
         <div id="contenedor-articulos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
     </section>
@@ -303,6 +323,32 @@
     </div>
 
     <!-- ========================================== -->
+    <!-- MODAL: GUÍAS COMPLETAS + BÚSQUEDA          -->
+    <!-- ========================================== -->
+    <div id="guias-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-gamingGray border border-gray-800 max-w-5xl w-full rounded-2xl overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh]">
+            <div class="p-6 border-b border-gray-800/60 flex justify-between items-center bg-black/20 gap-4">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2 flex-shrink-0">
+                    <i data-lucide="library" class="w-5 h-5 text-rgbCyan"></i>
+                    Guías Completas
+                </h3>
+                <div class="relative flex-1 max-w-md">
+                    <i data-lucide="search" class="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                    <input type="text" id="guias-buscador" oninput="filtrarGuiasCompletas()" placeholder="Buscar por título o palabra clave..."
+                        class="w-full bg-gamingDark border border-gray-700 rounded-lg py-2 pl-9 pr-3 text-sm focus:outline-none focus:border-rgbCyan text-gray-200">
+                </div>
+                <button onclick="cerrarModalGuiasCompletas()" class="text-gray-400 hover:text-white bg-gray-800/50 p-2 rounded-lg transition-colors flex-shrink-0">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto">
+                <div id="contenedor-guias-completas" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                <p id="guias-sin-resultados" class="text-center text-gray-500 text-sm py-10 hidden">No se encontraron artículos con ese término.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
     <!-- MODAL DE ARTÍCULO + GISCUS                 -->
     <!-- ========================================== -->
     <div id="articulo-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
@@ -314,9 +360,15 @@
                     <h3 id="modal-titulo" class="text-xl font-bold mt-1 text-white">Título del Artículo</h3>
                     <p id="modal-fecha" class="text-xs text-gray-500 mt-1">Fecha de publicación</p>
                 </div>
-                <button onclick="cerrarModal()" class="text-gray-400 hover:text-white bg-gray-800/50 p-2 rounded-lg transition-colors">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
+                <div class="flex items-center gap-2">
+                    <button id="modal-btn-like" onclick="alternarLikeArticuloActual()" class="hidden text-gray-400 hover:text-rgbPurple bg-gray-800/50 p-2 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-semibold">
+                        <i data-lucide="heart" class="w-4 h-4"></i>
+                        <span id="modal-likes-count">0</span>
+                    </button>
+                    <button onclick="cerrarModal()" class="text-gray-400 hover:text-white bg-gray-800/50 p-2 rounded-lg transition-colors">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- Cuerpo con scroll único: artículo + comentarios -->
@@ -761,7 +813,7 @@ async function listarTodasLasPublicaciones() {
     const { data, error } = await supabaseClient
         .from('publicaciones')
         .select(`
-            id, titulo, categoria, contenido, creado_en,
+            id, titulo, categoria, contenido, creado_en, ultima_hora,
             perfiles:autor_id ( nombre ),
             archivos_adjuntos ( id, tipo, ruta_storage, nombre_original )
         `)
@@ -769,6 +821,25 @@ async function listarTodasLasPublicaciones() {
 
     if (error) throw error;
     return data;
+}
+
+// ------------------------------------------------------------
+// 3b. MARCAR / DESMARCAR "ÚLTIMA HORA"
+// ------------------------------------------------------------
+async function alternarUltimaHora(id, valorActual) {
+    const { error } = await supabaseClient
+        .from('publicaciones')
+        .update({ ultima_hora: !valorActual })
+        .eq('id', id);
+
+    if (error) {
+        alert(`Error al actualizar: ${error.message}`);
+        return;
+    }
+    await renderizarPanelStaffPosts();
+    if (typeof recargarListaPublicaciones === 'function') {
+        await recargarListaPublicaciones();
+    }
 }
 
 // ------------------------------------------------------------
@@ -865,14 +936,15 @@ async function renderizarPanelStaffPosts() {
         }
 
         contenedor.innerHTML = posts.map(post => `
-            <div class="bg-gamingDark border border-gray-800 rounded-lg p-4 flex justify-between items-start gap-4">
+            <div class="bg-gamingDark border ${post.ultima_hora ? 'border-rgbNeon' : 'border-gray-800'} rounded-lg p-4 flex justify-between items-start gap-4">
                 <div class="min-w-0">
                     <p class="text-xs text-rgbCyan uppercase font-bold">${post.categoria}</p>
                     <h4 class="font-bold text-white">${escaparHTML(post.titulo)}</h4>
                     <p class="text-xs text-gray-500 mt-1">Por ${escaparHTML(post.perfiles?.nombre || 'Desconocido')} · ${new Date(post.creado_en).toLocaleDateString('es-PA')}</p>
                     <p class="text-xs text-gray-500 mt-1">${post.archivos_adjuntos?.length || 0} archivo(s) adjunto(s)</p>
                 </div>
-                <div class="flex gap-2 flex-shrink-0">
+                <div class="flex gap-2 flex-shrink-0 items-center">
+                    <button onclick="alternarUltimaHora(${post.id}, ${post.ultima_hora})" class="text-xs ${post.ultima_hora ? 'bg-rgbNeon text-gamingDark' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'} px-3 py-1.5 rounded-md font-semibold">${post.ultima_hora ? '★ Última hora' : 'Marcar última hora'}</button>
                     <button onclick="prepararEdicionPost(${post.id})" class="text-xs bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-md font-semibold">Editar</button>
                     <button onclick="confirmarEliminarPost(${post.id})" class="text-xs bg-red-900/40 text-red-300 hover:bg-red-900/70 px-3 py-1.5 rounded-md font-semibold">Eliminar</button>
                 </div>
@@ -1199,6 +1271,62 @@ async function quitarHeroMedia() {
     }
 }
 
+// ============================================================
+// REACCIONES ("me gusta") — identificador anónimo + alternar
+// ============================================================
+function obtenerIdentificadorReaccion() {
+    if (perfilActual?.id) return perfilActual.id;
+    let idAnonimo = localStorage.getItem('iavid_id_anonimo');
+    if (!idAnonimo) {
+        idAnonimo = 'anon-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem('iavid_id_anonimo', idAnonimo);
+    }
+    return idAnonimo;
+}
+
+function obtenerSetLikesPropios() {
+    try {
+        return new Set(JSON.parse(localStorage.getItem('iavid_likes_dados') || '[]'));
+    } catch {
+        return new Set();
+    }
+}
+
+function guardarSetLikesPropios(set) {
+    localStorage.setItem('iavid_likes_dados', JSON.stringify([...set]));
+}
+
+function yaDioLikeA(publicacionId) {
+    return obtenerSetLikesPropios().has(publicacionId);
+}
+
+async function alternarLikeArticuloActual() {
+    if (idPublicacionActualEnModal === null) return;
+    const id = idPublicacionActualEnModal;
+    const identificador = obtenerIdentificadorReaccion();
+    const likesPropios = obtenerSetLikesPropios();
+    const btnLike = document.getElementById('modal-btn-like');
+    const contadorEl = document.getElementById('modal-likes-count');
+
+    try {
+        if (likesPropios.has(id)) {
+            await supabaseClient.from('reacciones').delete().eq('publicacion_id', id).eq('identificador', identificador);
+            likesPropios.delete(id);
+            btnLike.classList.remove('text-rgbPurple');
+            contadorEl.textContent = Math.max(0, parseInt(contadorEl.textContent, 10) - 1);
+        } else {
+            await supabaseClient.from('reacciones').insert({ publicacion_id: id, identificador });
+            likesPropios.add(id);
+            btnLike.classList.add('text-rgbPurple');
+            contadorEl.textContent = parseInt(contadorEl.textContent, 10) + 1;
+        }
+        guardarSetLikesPropios(likesPropios);
+        await recargarListaPublicaciones();
+    } catch (error) {
+        console.error('Error al dar like:', error);
+    }
+}
+
     </script>
 
     <!-- ========================================== -->
@@ -1229,9 +1357,10 @@ async function quitarHeroMedia() {
             const { data, error } = await supabaseClient
                 .from('publicaciones')
                 .select(`
-                    id, titulo, categoria, contenido, creado_en,
+                    id, titulo, categoria, contenido, creado_en, ultima_hora,
                     perfiles:autor_id ( nombre ),
-                    archivos_adjuntos ( id, tipo, ruta_storage, nombre_original )
+                    archivos_adjuntos ( id, tipo, ruta_storage, nombre_original ),
+                    reacciones ( id )
                 `)
                 .order('creado_en', { ascending: false });
 
@@ -1239,7 +1368,14 @@ async function quitarHeroMedia() {
                 console.error('Error cargando publicaciones:', error);
                 return [];
             }
-            return data || [];
+
+            // Ordena: última hora primero, luego por fecha (ya viene
+            // ordenado por fecha desde la consulta, solo reubicamos
+            // los marcados como última hora al frente).
+            const lista = data || [];
+            const urgentes = lista.filter(p => p.ultima_hora);
+            const normales = lista.filter(p => !p.ultima_hora);
+            return [...urgentes, ...normales];
         }
 
         // Construye el bloque HTML de archivos adjuntos (imágenes,
@@ -1262,22 +1398,26 @@ async function quitarHeroMedia() {
             return `<div class="space-y-2">${bloques.join('')}</div>`;
         }
 
+        // Encuentra la primera imagen entre los adjuntos de un post,
+        // para usarla como foto de portada en las tarjetas.
+        function obtenerFotoPortada(adjuntos) {
+            if (!adjuntos || adjuntos.length === 0) return null;
+            const primeraImagen = adjuntos.find(a => a.tipo === 'imagen');
+            return primeraImagen ? obtenerUrlPublica(primeraImagen.ruta_storage) : null;
+        }
+
         // Recarga la lista combinada (estáticos + dinámicos) — se
         // llama tras crear, editar o eliminar una publicación.
         async function recargarListaPublicaciones() {
             publicacionesDinamicas = await cargarPublicacionesDinamicas();
             renderizarArticulos();
+            renderizarTopReacciones();
         }
 
         // ============================================================
-        // RENDER DE TARJETAS (combinando estáticos + dinámicos)
+        // FORMATEO COMÚN: dinámicos + estáticos a un solo formato
         // ============================================================
-        function renderizarArticulos() {
-            const contenedor = document.getElementById('contenedor-articulos');
-            contenedor.innerHTML = '';
-
-            // Mapea las publicaciones dinámicas al mismo formato que
-            // usan los artículos estáticos, para reusar el mismo render.
+        function formatearTodosLosArticulos() {
             const dinamicosFormateados = publicacionesDinamicas.map(p => ({
                 id: `db-${p.id}`,
                 idOriginal: p.id,
@@ -1287,42 +1427,133 @@ async function quitarHeroMedia() {
                 fecha: new Date(p.creado_en).toLocaleDateString('es-PA', { year: 'numeric', month: 'long' }),
                 descripcionCorta: (p.contenido || '').replace(/<[^>]*>/g, '').slice(0, 140) + '…',
                 contenidoCompleto: (p.contenido || '') + construirHTMLAdjuntos(p.archivos_adjuntos),
+                contenidoTextoPlano: (p.contenido || '').replace(/<[^>]*>/g, '').toLowerCase(),
                 autorNombre: p.perfiles?.nombre || null,
+                fotoPortada: obtenerFotoPortada(p.archivos_adjuntos),
+                ultimaHora: !!p.ultima_hora,
+                totalLikes: p.reacciones?.length || 0,
                 esDinamico: true
             }));
+            return [...dinamicosFormateados, ...baseDeDatosArticulos.map(a => ({ ...a, contenidoTextoPlano: (a.titulo + ' ' + a.descripcionCorta).toLowerCase(), totalLikes: 0, ultimaHora: false, fotoPortada: null }))];
+        }
 
-            const todosLosArticulos = [...dinamicosFormateados, ...baseDeDatosArticulos];
-
-            todosLosArticulos.forEach(articulo => {
-                contenedor.innerHTML += `
-                    <div class="group bg-gamingGray rounded-xl border border-gray-800 overflow-hidden ${articulo.bordeColor} transition-all duration-300 flex flex-col justify-between cursor-pointer" onclick="abrirModal('${articulo.id}')">
-                        <div class="p-6 space-y-4">
-                            <div class="flex justify-between items-center text-xs">
-                                <span class="text-transparent bg-clip-text bg-gradient-to-r from-rgbCyan to-rgbPurple font-bold uppercase tracking-wider">${articulo.categoria}</span>
-                                <span class="text-gray-500">${articulo.fecha}</span>
-                            </div>
-                            <h3 class="text-lg font-bold group-hover:text-rgbCyan transition-colors duration-200">${articulo.titulo}</h3>
-                            <p class="text-gray-400 text-sm line-clamp-3">${articulo.descripcionCorta}</p>
-                            ${articulo.autorNombre ? `<p class="text-[11px] text-rgbNeon">Por ${articulo.autorNombre} · Comunidad</p>` : ''}
+        // ============================================================
+        // RENDER DE UNA TARJETA (reusable: grilla normal, top 6, guías)
+        // ============================================================
+        function renderizarTarjetaArticulo(articulo, opciones = {}) {
+            const mostrarLikes = opciones.mostrarLikes || false;
+            return `
+                <div class="group bg-gamingGray rounded-xl border ${articulo.ultimaHora ? 'border-rgbNeon' : 'border-gray-800'} overflow-hidden ${articulo.bordeColor} transition-all duration-300 flex flex-col justify-between cursor-pointer relative" onclick="abrirModal('${articulo.id}')">
+                    ${articulo.ultimaHora ? `<span class="absolute top-3 right-3 bg-rgbNeon text-gamingDark text-[10px] font-extrabold uppercase tracking-wider px-2 py-1 rounded-md z-10">Última hora</span>` : ''}
+                    ${articulo.fotoPortada ? `<div class="h-40 w-full overflow-hidden"><img src="${articulo.fotoPortada}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"></div>` : ''}
+                    <div class="p-6 space-y-4">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-rgbCyan to-rgbPurple font-bold uppercase tracking-wider">${articulo.categoria}</span>
+                            <span class="text-gray-500">${articulo.fecha}</span>
                         </div>
-                        <div class="p-6 pt-0">
-                            <span class="text-xs font-bold text-rgbNeon flex items-center space-x-1">
-                                <span>Leer Contenido Completo</span>
-                                <i data-lucide="arrow-up-right" class="w-3 h-3"></i>
-                            </span>
-                        </div>
+                        <h3 class="text-lg font-bold group-hover:text-rgbCyan transition-colors duration-200">${articulo.titulo}</h3>
+                        <p class="text-gray-400 text-sm line-clamp-3">${articulo.descripcionCorta}</p>
+                        ${articulo.autorNombre ? `<p class="text-[11px] text-rgbNeon">Por ${articulo.autorNombre} · Comunidad</p>` : ''}
                     </div>
-                `;
+                    <div class="p-6 pt-0 flex justify-between items-center">
+                        <span class="text-xs font-bold text-rgbNeon flex items-center space-x-1">
+                            <span>Leer Contenido Completo</span>
+                            <i data-lucide="arrow-up-right" class="w-3 h-3"></i>
+                        </span>
+                        ${mostrarLikes ? `<span class="text-xs text-gray-500 flex items-center gap-1"><i data-lucide="heart" class="w-3.5 h-3.5 text-rgbPurple"></i>${articulo.totalLikes}</span>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============================================================
+        // RENDER DE TARJETAS (combinando estáticos + dinámicos)
+        // ============================================================
+        function renderizarArticulos() {
+            const contenedor = document.getElementById('contenedor-articulos');
+            contenedor.innerHTML = '';
+            const todosLosArticulos = formatearTodosLosArticulos();
+            todosLosArticulos.forEach(articulo => {
+                contenedor.innerHTML += renderizarTarjetaArticulo(articulo);
             });
             lucide.createIcons();
         }
 
         // ============================================================
+        // SECCIÓN: TOP 6 CON MÁS REACCIONES
+        // ============================================================
+        function renderizarTopReacciones() {
+            const seccion = document.getElementById('top-reacciones-seccion');
+            const contenedor = document.getElementById('contenedor-top-reacciones');
+            if (!seccion || !contenedor) return;
+
+            const todos = formatearTodosLosArticulos().filter(a => a.totalLikes > 0);
+            if (todos.length === 0) {
+                seccion.classList.add('hidden');
+                return;
+            }
+
+            const top6 = [...todos].sort((a, b) => b.totalLikes - a.totalLikes).slice(0, 6);
+            seccion.classList.remove('hidden');
+            contenedor.innerHTML = top6.map(a => renderizarTarjetaArticulo(a, { mostrarLikes: true })).join('');
+            lucide.createIcons();
+        }
+
+        // ============================================================
+        // MODAL: GUÍAS COMPLETAS + BÚSQUEDA
+        // ============================================================
+        function abrirModalGuiasCompletas() {
+            const modal = document.getElementById('guias-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.getElementById('guias-buscador').value = '';
+            renderizarGuiasCompletas(formatearTodosLosArticulos());
+            lucide.createIcons();
+        }
+
+        function cerrarModalGuiasCompletas() {
+            const modal = document.getElementById('guias-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function renderizarGuiasCompletas(lista) {
+            const contenedor = document.getElementById('contenedor-guias-completas');
+            const sinResultados = document.getElementById('guias-sin-resultados');
+            if (lista.length === 0) {
+                contenedor.innerHTML = '';
+                sinResultados.classList.remove('hidden');
+                return;
+            }
+            sinResultados.classList.add('hidden');
+            contenedor.innerHTML = lista.map(a => renderizarTarjetaArticulo(a, { mostrarLikes: true })).join('');
+            lucide.createIcons();
+        }
+
+        function filtrarGuiasCompletas() {
+            const termino = document.getElementById('guias-buscador').value.trim().toLowerCase();
+            const todos = formatearTodosLosArticulos();
+            if (!termino) {
+                renderizarGuiasCompletas(todos);
+                return;
+            }
+            const filtrados = todos.filter(a =>
+                a.titulo.toLowerCase().includes(termino) ||
+                a.categoria.toLowerCase().includes(termino) ||
+                (a.contenidoTextoPlano || '').includes(termino)
+            );
+            renderizarGuiasCompletas(filtrados);
+        }
+
+        // ============================================================
         // MODAL + CARGA DINÁMICA DE GISCUS POR ARTÍCULO
         // ============================================================
+        let idPublicacionActualEnModal = null;
+
         function abrirModal(id) {
             let articulo;
             let terminoGiscus;
+            idPublicacionActualEnModal = null;
 
             if (typeof id === 'string' && id.startsWith('db-')) {
                 const idReal = parseInt(id.replace('db-', ''), 10);
@@ -1335,10 +1566,17 @@ async function quitarHeroMedia() {
                     contenidoCompleto: (post.contenido || '') + construirHTMLAdjuntos(post.archivos_adjuntos)
                 };
                 terminoGiscus = `comunidad-post-${idReal}`;
+                idPublicacionActualEnModal = idReal;
+
+                const btnLike = document.getElementById('modal-btn-like');
+                btnLike.classList.remove('hidden');
+                document.getElementById('modal-likes-count').textContent = post.reacciones?.length || 0;
+                btnLike.classList.toggle('text-rgbPurple', yaDioLikeA(idReal));
             } else {
                 articulo = baseDeDatosArticulos.find(a => a.id === id);
                 if (!articulo) return;
                 terminoGiscus = articulo.giscusTermino;
+                document.getElementById('modal-btn-like').classList.add('hidden');
             }
 
             document.getElementById('modal-categoria').innerText = articulo.categoria;
