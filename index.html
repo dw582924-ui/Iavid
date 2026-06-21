@@ -26,59 +26,45 @@
         }
     </script>
     <script src="https://unpkg.com/lucide@latest"></script>
-
-    <!-- ============================================================ -->
-    <!-- SUPABASE — backend de usuarios, roles y publicaciones        -->
-    <!-- ============================================================ -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-
-    <!-- ============================================================ -->
-    <!-- GISCUS — Comentarios por artículo (usa GitHub Discussions)   -->
-    <!-- PASOS PARA ACTIVAR:                                          -->
-    <!--  1. Ve a https://giscus.app                                  -->
-    <!--  2. Pon tu repo de GitHub (ej: tuusuario/iavid)              -->
-    <!--  3. Activa Discussions en el repo: Settings → Features       -->
-    <!--  4. Instala la app de Giscus en tu repo desde giscus.app     -->
-    <!--  5. Copia los valores data-repo, data-repo-id,               -->
-    <!--     data-category-id que te genera y pégalos abajo           -->
-    <!-- ============================================================ -->
     <style>
-        /* Fuerza tema oscuro en el iframe de Giscus */
         .giscus-frame { border-radius: 12px; }
+        .star-btn { transition: transform 0.1s; }
+        .star-btn:hover { transform: scale(1.15); }
+        .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        /* Page transition */
+        .page { animation: fadeIn 0.25s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="bg-gamingDark text-gray-100 font-sans selection:bg-rgbPurple selection:text-white min-h-screen flex flex-col justify-between">
+<body class="bg-gamingDark text-gray-100 font-sans selection:bg-rgbPurple selection:text-white min-h-screen flex flex-col">
 
     <!-- ========================================== -->
     <!-- BARRA DE NAVEGACIÓN                        -->
     <!-- ========================================== -->
     <nav class="sticky top-0 z-40 bg-gamingDark/90 backdrop-blur-md border-b border-purple-900/40 px-6 py-4 flex justify-between items-center">
         <div class="flex items-center space-x-2">
-            <span class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-rgbCyan via-rgbPurple to-rgbNeon">IAVID</span>
+            <button onclick="navegarA('inicio')" class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-rgbCyan via-rgbPurple to-rgbNeon hover:opacity-80 transition-opacity">IAVID</button>
         </div>
         <div class="hidden md:flex space-x-8 text-sm font-medium tracking-wide">
-            <a href="#" class="hover:text-rgbCyan transition-colors">Inicio</a>
-            <a href="#articulos-seccion" onclick="filtrarArticulosPorGrupo('articulos')" class="hover:text-rgbPurple transition-colors">Artículos</a>
-            <a href="#articulos-seccion" onclick="filtrarArticulosPorGrupo('guias')" class="hover:text-rgbNeon transition-colors">Guías Prácticas</a>
+            <button onclick="navegarA('inicio')" id="nav-inicio" class="hover:text-rgbCyan transition-colors">Inicio</button>
+            <button onclick="navegarA('articulos')" id="nav-articulos" class="hover:text-rgbPurple transition-colors">Artículos</button>
+            <button onclick="navegarA('guias')" id="nav-guias" class="hover:text-rgbNeon transition-colors">Guías Prácticas</button>
             <a href="#feedback-seccion" class="text-gray-400 hover:text-white transition-colors">Dar Feedback</a>
         </div>
         <div class="flex items-center gap-3">
-            <!-- Botón: crear publicación (solo publicador o staff) -->
             <button data-rol-visible="publicador" onclick="abrirModalPublicar()"
                 class="hidden bg-gradient-to-r from-rgbNeon to-rgbCyan px-3 py-2 rounded-md font-bold text-xs tracking-wider uppercase hover:scale-105 transition-all">
                 + Publicar
             </button>
-            <!-- Botón: panel staff (solo staff) -->
             <button data-rol-visible="staff" onclick="abrirModalStaff()"
                 class="hidden bg-gamingGray border border-rgbPurple/50 px-3 py-2 rounded-md font-bold text-xs tracking-wider uppercase hover:border-rgbPurple transition-all">
                 Panel Staff
             </button>
-            <!-- Nombre + logout (solo autenticado) -->
             <div data-rol-visible="autenticado" class="hidden items-center gap-2">
                 <span id="nombre-usuario-actual" class="text-xs text-gray-400"></span>
                 <button onclick="cerrarSesion()" class="text-xs text-gray-500 hover:text-white underline">Salir</button>
             </div>
-            <!-- Botón: login (solo visitante / no logueado) -->
             <button data-rol-visible="visitante" onclick="abrirModalAuth()"
                 class="bg-gamingGray border border-gray-700 px-3 py-2 rounded-md font-bold text-xs tracking-wider uppercase hover:border-rgbCyan transition-all">
                 Ingresar
@@ -87,104 +73,217 @@
     </nav>
 
     <!-- ========================================== -->
-    <!-- SECCIÓN HERO                               -->
+    <!-- CONTENEDOR PRINCIPAL DE PÁGINAS            -->
     <!-- ========================================== -->
-    <header class="max-w-7xl mx-auto px-6 py-12 lg:py-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-        <div class="space-y-6">
-            <span class="inline-block bg-purple-900/30 text-rgbCyan border border-rgbCyan/30 text-xs px-3 py-1 rounded-full font-semibold uppercase tracking-widest">Inmersión & Usabilidad</span>
-            <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight">
-                La Inteligencia Artificial <br>
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-rgbPurple via-rgbCyan to-rgbNeon">Redefiniendo la Inmersión</span>
-            </h1>
-            <p class="text-gray-400 text-lg max-w-lg">
-                Explora cómo las mecánicas avanzadas de comportamiento de NPCs y sistemas interactivos transforman los mundos virtuales. Aprende las metodologías para lograr una verdadera inmersión jugable.
-            </p>
-            <div class="flex flex-wrap gap-4 pt-2">
-                <a href="#articulos-seccion" onclick="filtrarArticulosPorGrupo('todos')" class="bg-gamingGray border-2 border-rgbPurple px-6 py-3 rounded-lg font-bold hover:shadow-rgb-glow transition-all flex items-center space-x-2 group">
-                    <span>Explorar Contenido</span>
-                    <i data-lucide="arrow-right" class="w-4 h-4 text-rgbCyan group-hover:translate-x-1 transition-transform"></i>
-                </a>
-            </div>
-        </div>
-        <div class="relative group">
-            <div class="absolute -inset-1 bg-gradient-to-r from-rgbPurple via-rgbCyan to-rgbNeon rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
-            <div id="hero-caja-exterior" class="relative bg-gamingGray rounded-2xl border border-gray-800 overflow-hidden shadow-2xl">
-                <div id="hero-barra-terminal" class="bg-black/40 px-4 py-2 flex items-center justify-between border-b border-gray-800">
-                    <div class="flex space-x-1.5">
-                        <div class="w-3 h-3 rounded-full bg-red-500/70"></div>
-                        <div class="w-3 h-3 rounded-full bg-yellow-500/70"></div>
-                        <div class="w-3 h-3 rounded-full bg-green-500/70"></div>
+    <main class="flex-1">
+
+        <!-- ============================== -->
+        <!-- PÁGINA: INICIO                 -->
+        <!-- ============================== -->
+        <div id="pagina-inicio" class="page">
+
+            <!-- HERO -->
+            <header class="max-w-7xl mx-auto px-6 py-12 lg:py-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-6">
+                    <span class="inline-block bg-purple-900/30 text-rgbCyan border border-rgbCyan/30 text-xs px-3 py-1 rounded-full font-semibold uppercase tracking-widest">Inmersión & Usabilidad</span>
+                    <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+                        La Inteligencia Artificial <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-rgbPurple via-rgbCyan to-rgbNeon">Redefiniendo la Inmersión</span>
+                    </h1>
+                    <p class="text-gray-400 text-lg max-w-lg">
+                        Explora cómo las mecánicas avanzadas de comportamiento de NPCs y sistemas interactivos transforman los mundos virtuales. Aprende las metodologías para lograr una verdadera inmersión jugable.
+                    </p>
+                    <div class="flex flex-wrap gap-4 pt-2">
+                        <button onclick="navegarA('articulos')" class="bg-gamingGray border-2 border-rgbPurple px-6 py-3 rounded-lg font-bold hover:shadow-rgb-glow transition-all flex items-center space-x-2 group">
+                            <span>Ver Artículos</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4 text-rgbCyan group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                        <button onclick="navegarA('guias')" class="bg-gamingGray border-2 border-rgbNeon/50 px-6 py-3 rounded-lg font-bold hover:border-rgbNeon transition-all flex items-center space-x-2 group">
+                            <span>Ver Guías</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4 text-rgbNeon group-hover:translate-x-1 transition-transform"></i>
+                        </button>
                     </div>
-                    <span class="text-xs text-gray-500 font-mono">Simulacion_NPC_Reactivo.mp4</span>
                 </div>
-                <div id="hero-media-contenedor" class="h-64 sm:h-80 bg-gradient-to-b from-slate-950 to-gamingDark flex flex-col items-center justify-center relative p-6 text-center overflow-hidden">
-                    <!-- Placeholder por defecto (se reemplaza por JS si hay media cargada) -->
-                    <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:16px_16px]"></div>
-                    <div class="w-16 h-16 rounded-full border-4 border-t-rgbCyan border-r-rgbPurple border-b-transparent border-l-transparent animate-spin flex items-center justify-center mb-4">
-                        <i data-lucide="cpu" class="w-6 h-6 text-rgbPurple"></i>
+                <div class="relative group">
+                    <div class="absolute -inset-1 bg-gradient-to-r from-rgbPurple via-rgbCyan to-rgbNeon rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
+                    <div id="hero-caja-exterior" class="relative bg-gamingGray rounded-2xl border border-gray-800 overflow-hidden shadow-2xl">
+                        <div id="hero-barra-terminal" class="bg-black/40 px-4 py-2 flex items-center justify-between border-b border-gray-800">
+                            <div class="flex space-x-1.5">
+                                <div class="w-3 h-3 rounded-full bg-red-500/70"></div>
+                                <div class="w-3 h-3 rounded-full bg-yellow-500/70"></div>
+                                <div class="w-3 h-3 rounded-full bg-green-500/70"></div>
+                            </div>
+                            <span class="text-xs text-gray-500 font-mono">Simulacion_NPC_Reactivo.mp4</span>
+                        </div>
+                        <div id="hero-media-contenedor" class="h-64 sm:h-80 bg-gradient-to-b from-slate-950 to-gamingDark flex flex-col items-center justify-center relative p-6 text-center overflow-hidden">
+                            <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                            <div class="w-16 h-16 rounded-full border-4 border-t-rgbCyan border-r-rgbPurple border-b-transparent border-l-transparent animate-spin flex items-center justify-center mb-4">
+                                <i data-lucide="cpu" class="w-6 h-6 text-rgbPurple"></i>
+                            </div>
+                            <p class="text-sm font-mono text-rgbCyan tracking-widest uppercase animate-pulse">Árboles de Comportamiento Activos</p>
+                            <p class="text-xs text-gray-500 mt-2 max-w-xs">[Vídeo de muestra provisional: Análisis del sistema sensorial y de caza adaptativa de entornos inmersivos]</p>
+                        </div>
+                        <button data-rol-visible="staff" onclick="abrirModalHeroMedia()"
+                            class="hidden absolute top-3 right-3 z-10 bg-black/60 hover:bg-black/80 border border-rgbCyan/40 text-rgbCyan text-xs px-3 py-1.5 rounded-md font-semibold backdrop-blur-sm transition-all">
+                            <i data-lucide="image-plus" class="w-3.5 h-3.5 inline-block mr-1"></i>Editar media
+                        </button>
                     </div>
-                    <p class="text-sm font-mono text-rgbCyan tracking-widest uppercase animate-pulse">Árboles de Comportamiento Activos</p>
-                    <p class="text-xs text-gray-500 mt-2 max-w-xs">[Vídeo de muestra provisional: Análisis del sistema sensorial y de caza adaptativa de entornos inmersivos]</p>
                 </div>
-                <!-- Botón de gestión, solo visible para staff -->
-                <button data-rol-visible="staff" onclick="abrirModalHeroMedia()"
-                    class="hidden absolute top-3 right-3 z-10 bg-black/60 hover:bg-black/80 border border-rgbCyan/40 text-rgbCyan text-xs px-3 py-1.5 rounded-md font-semibold backdrop-blur-sm transition-all">
-                    <i data-lucide="image-plus" class="w-3.5 h-3.5 inline-block mr-1"></i>Editar media
-                </button>
+            </header>
+
+            <!-- INTRO -->
+            <section class="bg-gamingGray/40 border-y border-gray-800/60 py-12">
+                <div class="max-w-4xl mx-auto px-6 text-center space-y-4">
+                    <h2 class="text-xl font-bold uppercase tracking-wider text-rgbPurple">¿Qué es IAVID?</h2>
+                    <p class="text-gray-300 leading-relaxed">
+                        Nacemos con el objetivo de desglosar el comportamiento técnico de los entornos de juego. No solo analizamos críticamente cómo interactúan las entidades o los enemigos, sino que te mostramos pedagógicamente cómo estructurar las metodologías lógicas para implementar esa inmersión interactiva en tus propias interfaces y proyectos académicos.
+                    </p>
+                </div>
+            </section>
+
+            <!-- TOP 6 ARTÍCULOS MÁS REACCIONADOS -->
+            <section id="top-reacciones-seccion" class="max-w-7xl mx-auto px-6 pt-16 space-y-6 hidden">
+                <div class="flex items-end justify-between">
+                    <div>
+                        <h2 class="text-2xl font-extrabold tracking-tight flex items-center gap-2">
+                            <i data-lucide="flame" class="w-5 h-5 text-rgbNeon"></i>
+                            Artículos más reaccionados
+                        </h2>
+                        <p class="text-gray-400 text-sm mt-1">Los 6 artículos con más likes de la comunidad.</p>
+                    </div>
+                    <button onclick="navegarA('articulos')" class="text-xs text-rgbCyan hover:underline flex items-center gap-1">
+                        Ver todos <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                    </button>
+                </div>
+                <div id="contenedor-top-reacciones" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+            </section>
+
+            <!-- TOP 6 GUÍAS MEJOR VALORADAS -->
+            <section id="top-guias-seccion" class="max-w-7xl mx-auto px-6 pt-16 pb-16 space-y-6 hidden">
+                <div class="flex items-end justify-between">
+                    <div>
+                        <h2 class="text-2xl font-extrabold tracking-tight flex items-center gap-2">
+                            <i data-lucide="star" class="w-5 h-5 text-yellow-400"></i>
+                            Guías mejor valoradas
+                        </h2>
+                        <p class="text-gray-400 text-sm mt-1">Las 6 guías con mayor puntuación de la comunidad.</p>
+                    </div>
+                    <button onclick="navegarA('guias')" class="text-xs text-rgbNeon hover:underline flex items-center gap-1">
+                        Ver todas <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                    </button>
+                </div>
+                <div id="contenedor-top-guias" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+            </section>
+
+            <!-- FEEDBACK -->
+            <section id="feedback-seccion" class="max-w-3xl mx-auto px-6 py-12 mb-16 w-full">
+                <div class="bg-gradient-to-r from-purple-950/20 to-cyan-950/20 rounded-2xl border border-purple-500/30 p-8 space-y-6 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-3 bg-rgbPurple/20 text-rgbPurple rounded-bl-xl text-xs font-mono tracking-wider font-bold uppercase">Feedback</div>
+                    <div class="space-y-2">
+                        <h3 class="text-xl font-bold flex items-center space-x-2">
+                            <i data-lucide="message-square" class="text-rgbCyan w-5 h-5"></i>
+                            <span>¿Qué opinas de esta versión provisional?</span>
+                        </h3>
+                        <p class="text-gray-400 text-sm">Tu opinión sobre la estética gaming con luces RGB y el enfoque interactivo nos ayuda a validar la usabilidad de la interfaz.</p>
+                    </div>
+                    <form action="https://formspree.io/f/xzdlpbgz" method="POST" onsubmit="manejarFormspree(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-gray-400 mb-2 font-semibold">Tu sugerencia o comentario:</label>
+                            <textarea name="comentario" id="feedback-texto" rows="3" required
+                                class="w-full bg-gamingDark border border-gray-700 rounded-lg p-3 text-sm focus:outline-none focus:border-rgbCyan transition-colors text-gray-200 placeholder-gray-600"
+                                placeholder="Ej: Me gusta la paleta de colores oscuros, pero añadiría un buscador más grande..."></textarea>
+                        </div>
+                        <input type="hidden" name="pagina" value="inicio">
+                        <p id="feedback-estado" class="text-xs hidden"></p>
+                        <button type="submit" id="feedback-btn"
+                            class="w-full bg-transparent border border-rgbNeon text-rgbNeon shadow-neon-glow py-2.5 rounded-lg text-sm font-bold tracking-wider uppercase hover:bg-rgbNeon hover:text-gamingDark transition-all">
+                            Enviar Opinión
+                        </button>
+                    </form>
+                </div>
+            </section>
+        </div>
+
+        <!-- ============================== -->
+        <!-- PÁGINA: ARTÍCULOS             -->
+        <!-- ============================== -->
+        <div id="pagina-articulos" class="page hidden">
+            <div class="max-w-7xl mx-auto px-6 py-12 space-y-8">
+                <!-- Cabecera de página -->
+                <div class="flex items-center gap-4 border-b border-gray-800/60 pb-6">
+                    <button onclick="navegarA('inicio')" class="flex items-center gap-2 text-gray-400 hover:text-white text-sm transition-colors group">
+                        <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
+                        Volver al inicio
+                    </button>
+                    <div class="w-px h-5 bg-gray-700"></div>
+                    <div>
+                        <h1 class="text-3xl font-extrabold tracking-tight flex items-center gap-3">
+                            <i data-lucide="file-text" class="w-6 h-6 text-rgbPurple"></i>
+                            Artículos
+                        </h1>
+                        <p class="text-gray-400 text-sm mt-1">Análisis técnicos y ensayos sobre IA en videojuegos</p>
+                    </div>
+                </div>
+
+                <!-- Filtro rápido -->
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="filtrarPaginaArticulos('todos')" id="filtro-art-todos" class="filtro-art-btn px-4 py-1.5 rounded-full text-xs font-bold border border-rgbPurple bg-rgbPurple/20 text-rgbPurple">Todos</button>
+                    <button onclick="filtrarPaginaArticulos('Análisis de IA')" id="filtro-art-analisis" class="filtro-art-btn px-4 py-1.5 rounded-full text-xs font-bold border border-gray-700 text-gray-400 hover:border-rgbCyan hover:text-rgbCyan transition-colors">Análisis de IA</button>
+                    <button onclick="filtrarPaginaArticulos('Lógica e Implementación')" id="filtro-art-logica" class="filtro-art-btn px-4 py-1.5 rounded-full text-xs font-bold border border-gray-700 text-gray-400 hover:border-rgbCyan hover:text-rgbCyan transition-colors">Lógica e Implementación</button>
+                    <button onclick="filtrarPaginaArticulos('General')" id="filtro-art-general" class="filtro-art-btn px-4 py-1.5 rounded-full text-xs font-bold border border-gray-700 text-gray-400 hover:border-rgbCyan hover:text-rgbCyan transition-colors">General</button>
+                </div>
+
+                <div id="contenedor-pagina-articulos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
             </div>
         </div>
-    </header>
 
-    <!-- ========================================== -->
-    <!-- BLOQUE DE INTRODUCCIÓN                     -->
-    <!-- ========================================== -->
-    <section class="bg-gamingGray/40 border-y border-gray-800/60 py-12">
-        <div class="max-w-4xl mx-auto px-6 text-center space-y-4">
-            <h2 class="text-xl font-bold uppercase tracking-wider text-rgbPurple">¿Qué es IAVID?</h2>
-            <p class="text-gray-300 leading-relaxed">
-                Nacemos con el objetivo de desglosar el comportamiento técnico de los entornos de juego. No solo analizamos críticamente cómo interactúan las entidades o los enemigos, sino que te mostramos pedagógicamente cómo estructurar las metodologías lógicas para implementar esa inmersión interactiva en tus propias interfaces y proyectos académicos.
-            </p>
-        </div>
-    </section>
-
-    <!-- ========================================== -->
-    <!-- SECCIÓN: TOP 6 CON MÁS REACCIONES          -->
-    <!-- ========================================== -->
-    <section id="top-reacciones-seccion" class="max-w-7xl mx-auto px-6 pt-16 space-y-6 hidden">
-        <div>
-            <h2 class="text-2xl font-extrabold tracking-tight flex items-center gap-2">
-                <i data-lucide="flame" class="w-5 h-5 text-rgbNeon"></i>
-                Lo más reaccionado
-            </h2>
-            <p class="text-gray-400 text-sm mt-1">Los 6 artículos con más reacciones de la comunidad.</p>
-        </div>
-        <div id="contenedor-top-reacciones" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
-    </section>
-
-    <!-- ========================================== -->
-    <!-- SECCIÓN DE ARTÍCULOS                       -->
-    <!-- ========================================== -->
-    <section id="articulos-seccion" class="max-w-7xl mx-auto px-6 py-16 space-y-12">
-        <div class="flex flex-wrap justify-between items-start gap-4">
-            <div>
-                <h2 id="articulos-titulo-seccion" class="text-2xl font-extrabold tracking-tight">Análisis y Guías Pedagógicas</h2>
-                <p class="text-gray-400 text-sm mt-1">Haz clic en cualquier tarjeta para abrir e inspeccionar el contenido técnico.</p>
-                <div id="filtro-activo-chip" class="hidden mt-3 inline-flex items-center gap-2 bg-rgbPurple/20 border border-rgbPurple/40 text-rgbPurple text-xs font-semibold px-3 py-1.5 rounded-full">
-                    <span id="filtro-activo-texto"></span>
-                    <button onclick="limpiarFiltroArticulos()" class="hover:text-white"><i data-lucide="x" class="w-3 h-3"></i></button>
+        <!-- ============================== -->
+        <!-- PÁGINA: GUÍAS PRÁCTICAS        -->
+        <!-- ============================== -->
+        <div id="pagina-guias" class="page hidden">
+            <div class="max-w-7xl mx-auto px-6 py-12 space-y-8">
+                <!-- Cabecera de página -->
+                <div class="flex items-center gap-4 border-b border-gray-800/60 pb-6">
+                    <button onclick="navegarA('inicio')" class="flex items-center gap-2 text-gray-400 hover:text-white text-sm transition-colors group">
+                        <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
+                        Volver al inicio
+                    </button>
+                    <div class="w-px h-5 bg-gray-700"></div>
+                    <div>
+                        <h1 class="text-3xl font-extrabold tracking-tight flex items-center gap-3">
+                            <i data-lucide="library" class="w-6 h-6 text-rgbNeon"></i>
+                            Guías Prácticas
+                        </h1>
+                        <p class="text-gray-400 text-sm mt-1">Tutoriales de inmersión paso a paso con metodologías aplicables</p>
+                    </div>
                 </div>
+
+                <!-- Ordenar -->
+                <div class="flex items-center gap-3">
+                    <span class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Ordenar:</span>
+                    <button onclick="ordenarGuias('valoracion')" id="orden-valoracion" class="px-4 py-1.5 rounded-full text-xs font-bold border border-yellow-500/60 bg-yellow-500/10 text-yellow-400">Mejor valoradas</button>
+                    <button onclick="ordenarGuias('recientes')" id="orden-recientes" class="px-4 py-1.5 rounded-full text-xs font-bold border border-gray-700 text-gray-400 hover:border-gray-500 transition-colors">Más recientes</button>
+                </div>
+
+                <div id="contenedor-pagina-guias" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
             </div>
-            <button onclick="abrirModalGuiasCompletas()" class="bg-gamingGray border border-rgbCyan/40 hover:border-rgbCyan text-rgbCyan text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all">
-                <i data-lucide="library" class="w-4 h-4"></i>
-                Ver guías completas
-            </button>
         </div>
-        <div id="contenedor-articulos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
-    </section>
+
+    </main>
 
     <!-- ========================================== -->
-    <!-- MODAL: LOGIN / REGISTRO                    -->
+    <!-- PIE DE PÁGINA                              -->
     <!-- ========================================== -->
+    <footer class="border-t border-gray-950 bg-black/60 text-center py-8 text-xs text-gray-500 space-y-2 w-full">
+        <p>&copy; 2026 IAVID - Inteligencia Artificial en Videojuegos. Prototipo Académico.</p>
+        <p class="font-mono text-[10px] text-gray-600">Enfoque centrado en la inmersión del jugador y experiencia pedagógica.</p>
+    </footer>
+
+    <!-- ========================================== -->
+    <!-- MODALES                                    -->
+    <!-- ========================================== -->
+
+    <!-- LOGIN / REGISTRO -->
     <div id="auth-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-gamingGray border border-gray-800 max-w-sm w-full rounded-2xl overflow-hidden shadow-2xl relative">
             <div class="p-6 border-b border-gray-800/60 flex justify-between items-center bg-black/20">
@@ -218,9 +317,7 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- MODAL: NUEVA PUBLICACIÓN (rol Publicador)  -->
-    <!-- ========================================== -->
+    <!-- NUEVA PUBLICACIÓN -->
     <div id="publicar-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-gamingGray border border-gray-800 max-w-xl w-full rounded-2xl overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh]">
             <div class="p-6 border-b border-gray-800/60 flex justify-between items-center bg-black/20">
@@ -264,9 +361,7 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- MODAL: PANEL STAFF                         -->
-    <!-- ========================================== -->
+    <!-- PANEL STAFF -->
     <div id="staff-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-gamingGray border border-gray-800 max-w-3xl w-full rounded-2xl overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh]">
             <div class="p-6 border-b border-gray-800/60 flex justify-between items-center bg-black/20">
@@ -289,9 +384,7 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- MODAL: MEDIA DEL HERO (video/fotos staff)  -->
-    <!-- ========================================== -->
+    <!-- MEDIA DEL HERO -->
     <div id="hero-media-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-gamingGray border border-gray-800 max-w-md w-full rounded-2xl overflow-hidden shadow-2xl relative">
             <div class="p-6 border-b border-gray-800/60 flex justify-between items-center bg-black/20">
@@ -304,97 +397,61 @@
                 </button>
             </div>
             <div class="p-6 space-y-5">
-                <p class="text-xs text-gray-500">Si subes un video, este se muestra solo. Si solo subes fotos, rotan en carrusel. Subir uno nuevo reemplaza lo anterior de ese tipo.</p>
-
+                <p class="text-xs text-gray-500">Si subes un video, este se muestra solo. Si solo subes fotos, rotan en carrusel.</p>
                 <div class="space-y-2">
                     <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold">Video (MP4/WEBM, máx. 30MB)</label>
                     <input type="file" id="hero-input-video" accept=".mp4,.webm"
                         class="w-full text-xs text-gray-400 bg-gamingDark border border-gray-700 rounded-lg p-2.5 file:bg-gamingGray file:border-0 file:text-rgbCyan file:mr-3 file:px-3 file:py-1.5 file:rounded-md file:text-xs">
                     <button onclick="subirHeroVideo()" class="w-full bg-gradient-to-r from-rgbNeon to-rgbCyan text-gamingDark py-2 rounded-lg text-xs font-bold uppercase">Subir / Reemplazar Video</button>
                 </div>
-
                 <div class="border-t border-gray-800 pt-4 space-y-2">
                     <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold">Fotos rotativas (JPG/PNG/WEBP, máx. 8MB c/u)</label>
                     <input type="file" id="hero-input-fotos" accept=".jpg,.jpeg,.png,.webp" multiple
                         class="w-full text-xs text-gray-400 bg-gamingDark border border-gray-700 rounded-lg p-2.5 file:bg-gamingGray file:border-0 file:text-rgbCyan file:mr-3 file:px-3 file:py-1.5 file:rounded-md file:text-xs">
                     <button onclick="subirHeroFotos()" class="w-full bg-gamingDark border border-rgbPurple/50 text-rgbPurple py-2 rounded-lg text-xs font-bold uppercase">Subir / Reemplazar Fotos</button>
                 </div>
-
-                <button onclick="quitarHeroMedia()" class="w-full text-xs text-red-400 hover:text-red-300 underline pt-1">Quitar toda la media (volver al placeholder)</button>
-
+                <button onclick="quitarHeroMedia()" class="w-full text-xs text-red-400 hover:text-red-300 underline pt-1">Quitar toda la media</button>
                 <p id="hero-media-estado" class="text-xs hidden"></p>
             </div>
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- MODAL: GUÍAS COMPLETAS + BÚSQUEDA          -->
-    <!-- ========================================== -->
-    <div id="guias-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
-        <div class="bg-gamingGray border border-gray-800 max-w-5xl w-full rounded-2xl overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh]">
-            <div class="p-6 border-b border-gray-800/60 flex justify-between items-center bg-black/20 gap-4">
-                <h3 class="text-lg font-bold text-white flex items-center gap-2 flex-shrink-0">
-                    <i data-lucide="library" class="w-5 h-5 text-rgbCyan"></i>
-                    Guías Completas
-                </h3>
-                <div class="relative flex-1 max-w-md">
-                    <i data-lucide="search" class="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
-                    <input type="text" id="guias-buscador" oninput="filtrarGuiasCompletas()" placeholder="Buscar por título o palabra clave..."
-                        class="w-full bg-gamingDark border border-gray-700 rounded-lg py-2 pl-9 pr-3 text-sm focus:outline-none focus:border-rgbCyan text-gray-200">
-                </div>
-                <button onclick="cerrarModalGuiasCompletas()" class="text-gray-400 hover:text-white bg-gray-800/50 p-2 rounded-lg transition-colors flex-shrink-0">
-                    <i data-lucide="x" class="w-4 h-4"></i>
-                </button>
-            </div>
-            <div class="p-6 overflow-y-auto">
-                <div id="contenedor-guias-completas" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-                <p id="guias-sin-resultados" class="text-center text-gray-500 text-sm py-10 hidden">No se encontraron artículos con ese término.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- MODAL DE ARTÍCULO + GISCUS                 -->
-    <!-- ========================================== -->
+    <!-- MODAL ARTÍCULO / GUÍA -->
     <div id="articulo-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-gamingGray border border-gray-800 max-w-2xl w-full rounded-2xl overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh]">
-            <!-- Encabezado -->
             <div class="p-6 border-b border-gray-800/60 flex justify-between items-start bg-black/20">
                 <div>
                     <span id="modal-categoria" class="text-xs font-bold uppercase tracking-wider text-rgbCyan">Categoría</span>
-                    <h3 id="modal-titulo" class="text-xl font-bold mt-1 text-white">Título del Artículo</h3>
-                    <p id="modal-fecha" class="text-xs text-gray-500 mt-1">Fecha de publicación</p>
+                    <h3 id="modal-titulo" class="text-xl font-bold mt-1 text-white">Título</h3>
+                    <p id="modal-fecha" class="text-xs text-gray-500 mt-1">Fecha</p>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    <!-- Botón like (artículos) -->
                     <button id="modal-btn-like" onclick="alternarLikeArticuloActual()" class="hidden text-gray-400 hover:text-rgbPurple bg-gray-800/50 p-2 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-semibold">
                         <i data-lucide="heart" class="w-4 h-4"></i>
                         <span id="modal-likes-count">0</span>
                     </button>
+                    <!-- Valoración estrellas (guías) -->
+                    <div id="modal-estrellas-bloque" class="hidden flex items-center gap-1">
+                        <span class="text-xs text-gray-400 mr-1">Tu valoración:</span>
+                        <div id="modal-estrellas" class="flex gap-0.5"></div>
+                        <span id="modal-promedio-label" class="text-xs text-yellow-400 ml-2"></span>
+                    </div>
                     <button onclick="cerrarModal()" class="text-gray-400 hover:text-white bg-gray-800/50 p-2 rounded-lg transition-colors">
                         <i data-lucide="x" class="w-5 h-5"></i>
                     </button>
                 </div>
             </div>
-
-            <!-- Cuerpo con scroll único: artículo + comentarios -->
             <div class="overflow-y-auto flex-1 min-h-0">
-                <!-- Contenido del artículo -->
-                <div id="modal-contenido" class="p-6 space-y-4 text-gray-300 text-sm leading-relaxed font-normal"></div>
-
-                <!-- ============================================ -->
-                <!-- SECCIÓN DE COMENTARIOS GISCUS POR ARTÍCULO  -->
-                <!-- ============================================ -->
+                <div id="modal-contenido" class="p-6 space-y-4 text-gray-300 text-sm leading-relaxed"></div>
                 <div class="px-6 pb-4 border-t border-gray-800/60 pt-4">
                     <p class="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-3 flex items-center gap-2">
                         <i data-lucide="message-circle" class="w-4 h-4 text-rgbCyan"></i>
                         Comentarios de la comunidad
                     </p>
-                    <!-- Contenedor donde se inyecta Giscus dinámicamente -->
                     <div id="giscus-container"></div>
                 </div>
             </div>
-
-            <!-- Cierre -->
             <div class="p-4 bg-black/20 border-t border-gray-800/60 flex justify-end">
                 <button onclick="cerrarModal()" class="bg-gray-800 hover:bg-gray-700 text-white font-semibold text-xs px-4 py-2 rounded-lg transition-all">Cerrar Lectura</button>
             </div>
@@ -402,1459 +459,900 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- SECCIÓN DE FEEDBACK (Formspree)            -->
-    <!-- ========================================== -->
-    <section id="feedback-seccion" class="max-w-3xl mx-auto px-6 py-12 mb-16 w-full">
-        <div class="bg-gradient-to-r from-purple-950/20 to-cyan-950/20 rounded-2xl border border-purple-500/30 p-8 space-y-6 relative overflow-hidden">
-            <div class="absolute top-0 right-0 p-3 bg-rgbPurple/20 text-rgbPurple rounded-bl-xl text-xs font-mono tracking-wider font-bold uppercase">Feedback</div>
-            <div class="space-y-2">
-                <h3 class="text-xl font-bold flex items-center space-x-2">
-                    <i data-lucide="message-square" class="text-rgbCyan w-5 h-5"></i>
-                    <span>¿Qué opinas de esta versión provisional?</span>
-                </h3>
-                <p class="text-gray-400 text-sm">Tu opinión sobre la estética gaming con luces RGB y el enfoque interactivo nos ayuda a validar la usabilidad de la interfaz.</p>
-            </div>
-
-            <!-- ============================================================ -->
-            <!-- FORMSPREE — recibe el form y te lo manda al correo           -->
-            <!-- PASOS PARA ACTIVAR:                                          -->
-            <!--  1. Ve a https://formspree.io y crea cuenta gratis           -->
-            <!--  2. Crea un nuevo form → te dan un ID tipo "xpwzabcd"        -->
-            <!--  3. Reemplaza TU_FORM_ID en la acción del form abajo         -->
-            <!-- ============================================================ -->
-            <form action="https://formspree.io/f/xzdlpbgz" method="POST" onsubmit="manejarFormspree(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs uppercase tracking-wider text-gray-400 mb-2 font-semibold">Tu sugerencia o comentario:</label>
-                    <textarea name="comentario" id="feedback-texto" rows="3" required
-                        class="w-full bg-gamingDark border border-gray-700 rounded-lg p-3 text-sm focus:outline-none focus:border-rgbCyan transition-colors text-gray-200 placeholder-gray-600"
-                        placeholder="Ej: Me gusta la paleta de colores oscuros, pero añadiría un buscador más grande..."></textarea>
-                </div>
-                <!-- Campo oculto para saber desde qué artículo viene (opcional) -->
-                <input type="hidden" name="pagina" value="inicio">
-                <p id="feedback-estado" class="text-xs hidden"></p>
-                <button type="submit" id="feedback-btn"
-                    class="w-full bg-transparent border border-rgbNeon text-rgbNeon shadow-neon-glow py-2.5 rounded-lg text-sm font-bold tracking-wider uppercase hover:bg-rgbNeon hover:text-gamingDark transition-all">
-                    Enviar Opinión
-                </button>
-            </form>
-        </div>
-    </section>
-
-    <!-- ========================================== -->
-    <!-- PIE DE PÁGINA                              -->
-    <!-- ========================================== -->
-    <footer class="border-t border-gray-950 bg-black/60 text-center py-8 text-xs text-gray-500 space-y-2 w-full">
-        <p>&copy; 2026 IAVID - Inteligencia Artificial en Videojuegos. Prototipo Académico.</p>
-        <p class="font-mono text-[10px] text-gray-600">Enfoque centrado en la inmersión del jugador y experiencia pedagógica.</p>
-    </footer>
-
-    <!-- ========================================== -->
-    <!-- MÓDULOS: SUPABASE (auth, publicador, staff) -->
-    <!-- VERSIÓN UNIFICADA — todo en un solo archivo -->
-    <!-- ========================================== -->
-    <script>
-// ============================================================
-// IAVID — CONEXIÓN SUPABASE + AUTENTICACIÓN
-// ============================================================
-// Este archivo centraliza:
-//   1. La conexión al proyecto Supabase
-//   2. Registro / login / logout de usuarios
-//   3. Obtener el rol del usuario actual (visitante/publicador/staff)
-//   4. Mostrar/ocultar elementos del DOM según el rol
-// ============================================================
-
-// ------------------------------------------------------------
-// 1. CREDENCIALES DEL PROYECTO
-// ------------------------------------------------------------
-// ⚠️ REEMPLAZA estos dos valores con los de TU proyecto.
-// Los encuentras en: Supabase → Settings → API
-//   - "Project URL"      → SUPABASE_URL
-//   - "anon public" key  → SUPABASE_ANON_KEY
-// Es seguro tenerlos visibles en el frontend: la seguridad
-// real la dan las políticas RLS que ya configuramos en SQL.
-// ------------------------------------------------------------
-const SUPABASE_URL = 'https://qiewkzfcckezjvxarqgc.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFpZXdremZjY2tlemp2eGFycWdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MjM5ODksImV4cCI6MjA5NzM5OTk4OX0.UHyF93Bmjfydo-cdbfCLvfwqr2U75VL_oZ33ePadzJo';
-
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// Estado global en memoria: sesión y perfil del usuario actual
-let sesionActual = null;
-let perfilActual = null; // { id, nombre, rol }
-
-// ------------------------------------------------------------
-// 2. REGISTRO DE USUARIO NUEVO
-// ------------------------------------------------------------
-async function registrarUsuario(email, password, nombre) {
-    const { data, error } = await supabaseClient.auth.signUp({
-        email,
-        password,
-        options: {
-            data: { nombre } // se usa en el trigger SQL para el perfil
-        }
-    });
-    if (error) throw error;
-    return data;
-}
-
-// ------------------------------------------------------------
-// 3. LOGIN
-// ------------------------------------------------------------
-async function iniciarSesion(email, password) {
-    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    await cargarPerfilActual();
-    return data;
-}
-
-// ------------------------------------------------------------
-// 4. LOGOUT
-// ------------------------------------------------------------
-async function cerrarSesion() {
-    await supabaseClient.auth.signOut();
-    sesionActual = null;
-    perfilActual = null;
-    actualizarUIPorRol();
-}
-
-// ------------------------------------------------------------
-// 5. CARGAR PERFIL (id, nombre, rol) DEL USUARIO LOGUEADO
-// ------------------------------------------------------------
-async function cargarPerfilActual() {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    sesionActual = session;
-
-    if (!session) {
-        perfilActual = null;
-        actualizarUIPorRol();
-        return null;
-    }
-
-    const { data, error } = await supabaseClient
-        .from('perfiles')
-        .select('id, nombre, rol')
-        .eq('id', session.user.id)
-        .single();
-
-    if (error) {
-        console.error('Error cargando perfil:', error);
-        perfilActual = null;
-    } else {
-        perfilActual = data;
-    }
-
-    actualizarUIPorRol();
-    return perfilActual;
-}
-
-// ------------------------------------------------------------
-// 6. ACTUALIZAR LA INTERFAZ SEGÚN EL ROL ACTUAL
-// ------------------------------------------------------------
-// Convención usada en el HTML:
-//   data-rol-visible="publicador"        → solo visible para publicador o staff
-//   data-rol-visible="staff"             → solo visible para staff
-//   data-rol-visible="autenticado"       → visible para cualquier usuario logueado
-//   data-rol-visible="visitante"         → visible solo si NO hay sesión
-// ------------------------------------------------------------
-function actualizarUIPorRol() {
-    const rol = perfilActual?.rol || null;
-    const logueado = !!sesionActual;
-
-    document.querySelectorAll('[data-rol-visible]').forEach(el => {
-        const requerido = el.getAttribute('data-rol-visible');
-        let mostrar = false;
-
-        if (requerido === 'visitante') mostrar = !logueado;
-        else if (requerido === 'autenticado') mostrar = logueado;
-        else if (requerido === 'publicador') mostrar = rol === 'publicador' || rol === 'staff';
-        else if (requerido === 'staff') mostrar = rol === 'staff';
-
-        el.classList.toggle('hidden', !mostrar);
-    });
-
-    // Actualiza el nombre visible en la barra de navegación, si existe
-    const nombreEl = document.getElementById('nombre-usuario-actual');
-    if (nombreEl) nombreEl.textContent = perfilActual?.nombre || '';
-}
-
-// ------------------------------------------------------------
-// 7. ESCUCHAR CAMBIOS DE SESIÓN (login/logout en otra pestaña, etc.)
-// ------------------------------------------------------------
-supabaseClient.auth.onAuthStateChange((_evento, session) => {
-    sesionActual = session;
-    if (session) {
-        cargarPerfilActual();
-    } else {
-        perfilActual = null;
-        actualizarUIPorRol();
-    }
-});
-
-// ------------------------------------------------------------
-// 8. INICIALIZACIÓN AL CARGAR LA PÁGINA
-// ------------------------------------------------------------
-document.addEventListener('DOMContentLoaded', () => {
-    cargarPerfilActual();
-});
-
-// ============================================================
-// IAVID — ROL PUBLICADOR: crear posts + subir archivos
-// ============================================================
-// Requiere que auth.js ya esté cargado antes que este archivo
-// (usa supabaseClient y perfilActual definidos ahí).
-// ============================================================
-
-const NOMBRE_BUCKET = 'publicaciones-media';
-
-// Límites de validación en el frontend (la validación real de
-// seguridad está en las políticas RLS, esto es solo para dar
-// buen feedback al usuario antes de gastar su ancho de banda)
-const LIMITES_ARCHIVO = {
-    imagen: { tamanoMaxMB: 8,  tipos: ['image/jpeg', 'image/png', 'image/webp'] },
-    video:  { tamanoMaxMB: 30, tipos: ['video/mp4', 'video/webm'] },
-    pdf:    { tamanoMaxMB: 15, tipos: ['application/pdf'] }
-};
-
-// ------------------------------------------------------------
-// 1. DETECTAR TIPO DE ARCHIVO SEGÚN SU MIME TYPE
-// ------------------------------------------------------------
-function detectarTipoArchivo(file) {
-    if (LIMITES_ARCHIVO.imagen.tipos.includes(file.type)) return 'imagen';
-    if (LIMITES_ARCHIVO.video.tipos.includes(file.type)) return 'video';
-    if (LIMITES_ARCHIVO.pdf.tipos.includes(file.type)) return 'pdf';
-    return null;
-}
-
-// ------------------------------------------------------------
-// 2. VALIDAR UN ARCHIVO ANTES DE SUBIRLO
-// ------------------------------------------------------------
-function validarArchivo(file) {
-    const tipo = detectarTipoArchivo(file);
-    if (!tipo) {
-        return { valido: false, error: `Tipo de archivo no permitido: ${file.type || 'desconocido'}. Solo JPG, PNG, WEBP, MP4, WEBM o PDF.` };
-    }
-    const limiteMB = LIMITES_ARCHIVO[tipo].tamanoMaxMB;
-    const tamanoMB = file.size / (1024 * 1024);
-    if (tamanoMB > limiteMB) {
-        return { valido: false, error: `El archivo "${file.name}" pesa ${tamanoMB.toFixed(1)} MB. El máximo para ${tipo} es ${limiteMB} MB.` };
-    }
-    return { valido: true, tipo };
-}
-
-// ------------------------------------------------------------
-// 3. SUBIR UN ARCHIVO AL BUCKET Y REGISTRARLO EN LA TABLA
-// ------------------------------------------------------------
-async function subirArchivoAdjunto(file, publicacionId) {
-    const validacion = validarArchivo(file);
-    if (!validacion.valido) throw new Error(validacion.error);
-
-    // Limpia el nombre del archivo (sin espacios ni caracteres raros)
-    const nombreLimpio = file.name
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // quita acentos
-        .replace(/[^a-zA-Z0-9._-]/g, '_');
-
-    const rutaStorage = `${perfilActual.id}/${Date.now()}_${nombreLimpio}`;
-
-    const { error: errorSubida } = await supabaseClient
-        .storage
-        .from(NOMBRE_BUCKET)
-        .upload(rutaStorage, file, { cacheControl: '3600', upsert: false });
-
-    if (errorSubida) throw errorSubida;
-
-    const { error: errorRegistro } = await supabaseClient
-        .from('archivos_adjuntos')
-        .insert({
-            publicacion_id: publicacionId,
-            tipo: validacion.tipo,
-            ruta_storage: rutaStorage,
-            nombre_original: file.name,
-            tamano_bytes: file.size
-        });
-
-    if (errorRegistro) throw errorRegistro;
-
-    return rutaStorage;
-}
-
-// ------------------------------------------------------------
-// 4. OBTENER LA URL PÚBLICA DE UN ARCHIVO YA SUBIDO
-// ------------------------------------------------------------
-function obtenerUrlPublica(rutaStorage) {
-    const { data } = supabaseClient.storage.from(NOMBRE_BUCKET).getPublicUrl(rutaStorage);
-    return data.publicUrl;
-}
-
-// ------------------------------------------------------------
-// 5. CREAR UNA PUBLICACIÓN NUEVA (con sus archivos adjuntos)
-// ------------------------------------------------------------
-// archivosSeleccionados: array de File objects (desde un <input type="file" multiple>)
-// ------------------------------------------------------------
-async function crearPublicacion({ titulo, categoria, contenido, archivosSeleccionados }) {
-    if (!perfilActual || (perfilActual.rol !== 'publicador' && perfilActual.rol !== 'staff')) {
-        throw new Error('No tienes permiso para publicar. Tu rol actual no permite crear posts.');
-    }
-
-    // Valida TODOS los archivos antes de subir nada (evita subir
-    // 2 de 3 y luego fallar a medio camino)
-    for (const file of archivosSeleccionados) {
-        const v = validarArchivo(file);
-        if (!v.valido) throw new Error(v.error);
-    }
-
-    const { data: nuevoPost, error: errorPost } = await supabaseClient
-        .from('publicaciones')
-        .insert({
-            autor_id: perfilActual.id,
-            titulo,
-            categoria,
-            contenido
-        })
-        .select()
-        .single();
-
-    if (errorPost) throw errorPost;
-
-    // Sube cada archivo y lo asocia al post recién creado
-    const rutasSubidas = [];
-    for (const file of archivosSeleccionados) {
-        try {
-            const ruta = await subirArchivoAdjunto(file, nuevoPost.id);
-            rutasSubidas.push(ruta);
-        } catch (err) {
-            console.error(`Error subiendo "${file.name}":`, err);
-            // El post ya existe aunque un archivo falle; se informa
-            // al usuario pero no se revierte el post completo.
-            throw new Error(`Post creado, pero falló la subida de "${file.name}": ${err.message}`);
-        }
-    }
-
-    return { post: nuevoPost, archivosSubidos: rutasSubidas };
-}
-
-// ------------------------------------------------------------
-// 6. MANEJADOR DEL FORMULARIO (conectar con el HTML)
-// ------------------------------------------------------------
-// Convención esperada en el HTML (ver paso de integración):
-//   <form id="form-nueva-publicacion">
-//     <input name="titulo">
-//     <select name="categoria">...</select>
-//     <textarea name="contenido"></textarea>
-//     <input type="file" name="archivos" multiple accept=".jpg,.jpeg,.png,.webp,.mp4,.webm,.pdf">
-//   </form>
-// ------------------------------------------------------------
-async function manejarEnvioPublicacion(event) {
-    event.preventDefault();
-    const form = event.target;
-    const btn = form.querySelector('button[type="submit"]');
-    const estadoEl = document.getElementById('publicar-estado');
-
-    const titulo = form.titulo.value.trim();
-    const categoria = form.categoria.value;
-    const contenido = form.contenido.value.trim();
-    const inputArchivos = form.archivos;
-    const archivosSeleccionados = inputArchivos.files ? Array.from(inputArchivos.files) : [];
-
-    if (!titulo || !contenido) {
-        mostrarEstadoPublicar('Completa al menos el título y el contenido.', 'error');
-        return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = 'Publicando...';
-    mostrarEstadoPublicar('', 'oculto');
-
-    try {
-        await crearPublicacion({ titulo, categoria, contenido, archivosSeleccionados });
-        mostrarEstadoPublicar('✅ ¡Publicación creada con éxito!', 'exito');
-        form.reset();
-        if (typeof recargarListaPublicaciones === 'function') {
-            await recargarListaPublicaciones();
-        }
-    } catch (error) {
-        console.error('Error al publicar:', error);
-        mostrarEstadoPublicar(`❌ ${error.message}`, 'error');
-    } finally {
-        btn.disabled = false;
-        btn.textContent = 'Publicar';
-    }
-}
-
-function mostrarEstadoPublicar(mensaje, tipo) {
-    const estadoEl = document.getElementById('publicar-estado');
-    if (!estadoEl) return;
-    if (tipo === 'oculto') {
-        estadoEl.classList.add('hidden');
-        return;
-    }
-    estadoEl.textContent = mensaje;
-    estadoEl.className = tipo === 'exito' ? 'text-xs text-rgbNeon' : 'text-xs text-red-400';
-    estadoEl.classList.remove('hidden');
-}
-
-// ============================================================
-// IAVID — ROL STAFF (moderador/administrador)
-// ============================================================
-// Requiere que auth.js esté cargado antes (usa supabaseClient
-// y perfilActual).
-// Funciones para:
-//   1. Listar TODAS las publicaciones (con datos del autor)
-//   2. Editar cualquier publicación
-//   3. Eliminar cualquier publicación (y sus archivos en Storage)
-//   4. Listar usuarios y cambiar su rol
-// ============================================================
-
-// ------------------------------------------------------------
-// 1. VERIFICACIÓN RÁPIDA: ¿el usuario actual es staff?
-// ------------------------------------------------------------
-function esStaff() {
-    return perfilActual?.rol === 'staff';
-}
-
-// ------------------------------------------------------------
-// 2. LISTAR TODAS LAS PUBLICACIONES (para el panel de staff)
-// ------------------------------------------------------------
-async function listarTodasLasPublicaciones() {
-    const { data, error } = await supabaseClient
-        .from('publicaciones')
-        .select(`
-            id, titulo, categoria, contenido, creado_en, ultima_hora,
-            perfiles:autor_id ( nombre ),
-            archivos_adjuntos ( id, tipo, ruta_storage, nombre_original )
-        `)
-        .order('creado_en', { ascending: false });
-
-    if (error) throw error;
-    return data;
-}
-
-// ------------------------------------------------------------
-// 3b. MARCAR / DESMARCAR "ÚLTIMA HORA"
-// ------------------------------------------------------------
-async function alternarUltimaHora(id, valorActual) {
-    const { error } = await supabaseClient
-        .from('publicaciones')
-        .update({ ultima_hora: !valorActual })
-        .eq('id', id);
-
-    if (error) {
-        alert(`Error al actualizar: ${error.message}`);
-        return;
-    }
-    await renderizarPanelStaffPosts();
-    if (typeof recargarListaPublicaciones === 'function') {
-        await recargarListaPublicaciones();
-    }
-}
-
-// ------------------------------------------------------------
-// 3. EDITAR UNA PUBLICACIÓN (staff puede editar cualquiera,
-//    gracias a la política RLS "publicaciones_editar_propio_o_staff")
-// ------------------------------------------------------------
-async function editarPublicacion(id, { titulo, categoria, contenido }) {
-    const { error } = await supabaseClient
-        .from('publicaciones')
-        .update({ titulo, categoria, contenido, actualizado_en: new Date().toISOString() })
-        .eq('id', id);
-
-    if (error) throw error;
-}
-
-// ------------------------------------------------------------
-// 4. ELIMINAR UNA PUBLICACIÓN COMPLETA
-// ------------------------------------------------------------
-// Borra primero los archivos físicos del Storage, luego la
-// fila de la tabla (lo cual borra en cascada sus referencias
-// en archivos_adjuntos gracias al "on delete cascade" del SQL).
-// ------------------------------------------------------------
-async function eliminarPublicacion(id) {
-    const { data: adjuntos, error: errorAdjuntos } = await supabaseClient
-        .from('archivos_adjuntos')
-        .select('ruta_storage')
-        .eq('publicacion_id', id);
-
-    if (errorAdjuntos) throw errorAdjuntos;
-
-    if (adjuntos && adjuntos.length > 0) {
-        const rutas = adjuntos.map(a => a.ruta_storage);
-        const { error: errorBorradoStorage } = await supabaseClient
-            .storage
-            .from(NOMBRE_BUCKET)
-            .remove(rutas);
-        if (errorBorradoStorage) {
-            console.warn('Algunos archivos no se pudieron borrar del storage:', errorBorradoStorage);
-            // Continúa igual: es preferible borrar el post aunque
-            // queden archivos huérfanos, a dejar el post atorado.
-        }
-    }
-
-    const { error: errorPost } = await supabaseClient
-        .from('publicaciones')
-        .delete()
-        .eq('id', id);
-
-    if (errorPost) throw errorPost;
-}
-
-// ------------------------------------------------------------
-// 5. LISTAR USUARIOS (para gestionar roles)
-// ------------------------------------------------------------
-async function listarUsuarios() {
-    const { data, error } = await supabaseClient
-        .from('perfiles')
-        .select('id, nombre, rol, creado_en')
-        .order('creado_en', { ascending: false });
-
-    if (error) throw error;
-    return data;
-}
-
-// ------------------------------------------------------------
-// 6. CAMBIAR EL ROL DE UN USUARIO
-// ------------------------------------------------------------
-async function cambiarRolUsuario(idUsuario, nuevoRol) {
-    if (!['visitante', 'publicador', 'staff'].includes(nuevoRol)) {
-        throw new Error('Rol inválido.');
-    }
-    const { error } = await supabaseClient
-        .from('perfiles')
-        .update({ rol: nuevoRol })
-        .eq('id', idUsuario);
-
-    if (error) throw error;
-}
-
-// ------------------------------------------------------------
-// 7. RENDERIZAR EL PANEL DE STAFF (posts)
-// ------------------------------------------------------------
-async function renderizarPanelStaffPosts() {
-    const contenedor = document.getElementById('staff-lista-posts');
-    if (!contenedor || !esStaff()) return;
-
-    contenedor.innerHTML = '<p class="text-gray-500 text-sm">Cargando publicaciones...</p>';
-
-    try {
-        const posts = await listarTodasLasPublicaciones();
-        if (posts.length === 0) {
-            contenedor.innerHTML = '<p class="text-gray-500 text-sm">No hay publicaciones todavía.</p>';
-            return;
-        }
-
-        contenedor.innerHTML = posts.map(post => `
-            <div class="bg-gamingDark border ${post.ultima_hora ? 'border-rgbNeon' : 'border-gray-800'} rounded-lg p-4 flex justify-between items-start gap-4">
-                <div class="min-w-0">
-                    <p class="text-xs text-rgbCyan uppercase font-bold">${post.categoria}</p>
-                    <h4 class="font-bold text-white">${escaparHTML(post.titulo)}</h4>
-                    <p class="text-xs text-gray-500 mt-1">Por ${escaparHTML(post.perfiles?.nombre || 'Desconocido')} · ${new Date(post.creado_en).toLocaleDateString('es-PA')}</p>
-                    <p class="text-xs text-gray-500 mt-1">${post.archivos_adjuntos?.length || 0} archivo(s) adjunto(s)</p>
-                </div>
-                <div class="flex gap-2 flex-shrink-0 items-center">
-                    <button onclick="alternarUltimaHora(${post.id}, ${post.ultima_hora})" class="text-xs ${post.ultima_hora ? 'bg-rgbNeon text-gamingDark' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'} px-3 py-1.5 rounded-md font-semibold">${post.ultima_hora ? '★ Última hora' : 'Marcar última hora'}</button>
-                    <button onclick="prepararEdicionPost(${post.id})" class="text-xs bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-md font-semibold">Editar</button>
-                    <button onclick="confirmarEliminarPost(${post.id})" class="text-xs bg-red-900/40 text-red-300 hover:bg-red-900/70 px-3 py-1.5 rounded-md font-semibold">Eliminar</button>
-                </div>
-            </div>
-        `).join('');
-    } catch (error) {
-        contenedor.innerHTML = `<p class="text-red-400 text-sm">Error cargando publicaciones: ${error.message}</p>`;
-    }
-}
-
-// ------------------------------------------------------------
-// 8. CONFIRMAR Y EJECUTAR ELIMINACIÓN DESDE EL PANEL
-// ------------------------------------------------------------
-async function confirmarEliminarPost(id) {
-    if (!confirm('¿Eliminar esta publicación y todos sus archivos adjuntos? Esta acción no se puede deshacer.')) return;
-    try {
-        await eliminarPublicacion(id);
-        await renderizarPanelStaffPosts();
-        if (typeof recargarListaPublicaciones === 'function') {
-            await recargarListaPublicaciones();
-        }
-    } catch (error) {
-        alert(`Error al eliminar: ${error.message}`);
-    }
-}
-
-// ------------------------------------------------------------
-// 9. RENDERIZAR EL PANEL DE STAFF (usuarios / roles)
-// ------------------------------------------------------------
-async function renderizarPanelStaffUsuarios() {
-    const contenedor = document.getElementById('staff-lista-usuarios');
-    if (!contenedor || !esStaff()) return;
-
-    contenedor.innerHTML = '<p class="text-gray-500 text-sm">Cargando usuarios...</p>';
-
-    try {
-        const usuarios = await listarUsuarios();
-        contenedor.innerHTML = usuarios.map(u => `
-            <div class="bg-gamingDark border border-gray-800 rounded-lg p-3 flex justify-between items-center gap-4">
-                <div class="min-w-0">
-                    <p class="font-semibold text-sm text-white">${escaparHTML(u.nombre)}</p>
-                    <p class="text-xs text-gray-500">Rol actual: <span class="text-rgbCyan">${u.rol}</span></p>
-                </div>
-                <select onchange="confirmarCambioRol('${u.id}', this.value, '${escaparHTML(u.nombre)}')"
-                    class="bg-gamingGray border border-gray-700 text-xs rounded-md px-2 py-1.5 text-gray-200">
-                    <option value="visitante" ${u.rol === 'visitante' ? 'selected' : ''}>Visitante</option>
-                    <option value="publicador" ${u.rol === 'publicador' ? 'selected' : ''}>Publicador</option>
-                    <option value="staff" ${u.rol === 'staff' ? 'selected' : ''}>Staff</option>
-                </select>
-            </div>
-        `).join('');
-    } catch (error) {
-        contenedor.innerHTML = `<p class="text-red-400 text-sm">Error cargando usuarios: ${error.message}</p>`;
-    }
-}
-
-async function confirmarCambioRol(idUsuario, nuevoRol, nombre) {
-    if (!confirm(`¿Cambiar el rol de "${nombre}" a "${nuevoRol}"?`)) {
-        await renderizarPanelStaffUsuarios(); // revierte el select visualmente
-        return;
-    }
-    try {
-        await cambiarRolUsuario(idUsuario, nuevoRol);
-        await renderizarPanelStaffUsuarios();
-    } catch (error) {
-        alert(`Error al cambiar rol: ${error.message}`);
-    }
-}
-
-// ------------------------------------------------------------
-// 10. UTILIDAD: escapar HTML para evitar inyección al mostrar
-//     nombres/títulos que vienen de la base de datos
-// ------------------------------------------------------------
-function escaparHTML(texto) {
-    const div = document.createElement('div');
-    div.textContent = texto ?? '';
-    return div.innerHTML;
-}
-
-// ------------------------------------------------------------
-// 11. EDICIÓN DE POST (abre un prompt simple; se puede mejorar
-//     a un modal completo si lo necesitas más adelante)
-// ------------------------------------------------------------
-async function prepararEdicionPost(id) {
-    try {
-        const posts = await listarTodasLasPublicaciones();
-        const post = posts.find(p => p.id === id);
-        if (!post) return;
-
-        const nuevoTitulo = prompt('Nuevo título:', post.titulo);
-        if (nuevoTitulo === null) return;
-        const nuevoContenido = prompt('Nuevo contenido (HTML permitido):', post.contenido);
-        if (nuevoContenido === null) return;
-
-        await editarPublicacion(id, {
-            titulo: nuevoTitulo,
-            categoria: post.categoria,
-            contenido: nuevoContenido
-        });
-        await renderizarPanelStaffPosts();
-        if (typeof recargarListaPublicaciones === 'function') {
-            await recargarListaPublicaciones();
-        }
-    } catch (error) {
-        alert(`Error al editar: ${error.message}`);
-    }
-}
-
-// ============================================================
-// HERO MEDIA — video o fotos rotativas en la caja del hero
-// ============================================================
-const CARPETA_HERO = 'hero';
-let intervaloCarruselHero = null;
-
-// ------------------------------------------------------------
-// Cargar y renderizar la media actual del hero (al iniciar)
-// ------------------------------------------------------------
-async function cargarHeroMedia() {
-    const { data, error } = await supabaseClient
-        .from('hero_media')
-        .select('tipo, video_ruta, fotos_rutas')
-        .eq('id', 1)
-        .single();
-
-    if (error) {
-        console.error('Error cargando hero_media:', error);
-        return;
-    }
-    renderizarHeroMedia(data);
-}
-
-function renderizarHeroMedia(data) {
-    const contenedor = document.getElementById('hero-media-contenedor');
-    const cajaExterior = document.getElementById('hero-caja-exterior');
-    const barraTerminal = document.getElementById('hero-barra-terminal');
-    if (!contenedor) return;
-
-    // Limpia cualquier carrusel anterior corriendo
-    if (intervaloCarruselHero) {
-        clearInterval(intervaloCarruselHero);
-        intervaloCarruselHero = null;
-    }
-
-    // Sin media: deja el placeholder que ya está en el HTML, con
-    // su marco/terminal originales restaurados.
-    if (!data || data.tipo === 'ninguno') {
-        if (barraTerminal) barraTerminal.classList.remove('hidden');
-        if (cajaExterior) cajaExterior.classList.add('border', 'border-gray-800');
-        contenedor.classList.add('p-6');
-        return;
-    }
-
-    // Con media real: oculta la barra de terminal y el borde/padding
-    // para que la foto/video llene el recuadro sin marco visible.
-    if (barraTerminal) barraTerminal.classList.add('hidden');
-    if (cajaExterior) cajaExterior.classList.remove('border', 'border-gray-800');
-    contenedor.classList.remove('p-6');
-
-    if (data.tipo === 'video' && data.video_ruta) {
-        const url = obtenerUrlPublica(data.video_ruta);
-        contenedor.innerHTML = `<video src="${url}" autoplay loop muted playsinline class="w-full h-full object-cover"></video>`;
-        return;
-    }
-
-    if (data.tipo === 'fotos' && data.fotos_rutas && data.fotos_rutas.length > 0) {
-        const urls = data.fotos_rutas.map(r => obtenerUrlPublica(r));
-        contenedor.innerHTML = `<img id="hero-carrusel-img" src="${urls[0]}" class="w-full h-full object-cover transition-opacity duration-500">`;
-        if (urls.length > 1) {
-            let indice = 0;
-            intervaloCarruselHero = setInterval(() => {
-                indice = (indice + 1) % urls.length;
-                const img = document.getElementById('hero-carrusel-img');
-                if (img) {
-                    img.style.opacity = '0';
-                    setTimeout(() => {
-                        img.src = urls[indice];
-                        img.style.opacity = '1';
-                    }, 300);
-                }
-            }, 4000);
-        }
-        return;
-    }
-}
-
-// ------------------------------------------------------------
-// Modal de gestión (staff)
-// ------------------------------------------------------------
-function abrirModalHeroMedia() {
-    const modal = document.getElementById('hero-media-modal');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    lucide.createIcons();
-}
-
-function cerrarModalHeroMedia() {
-    const modal = document.getElementById('hero-media-modal');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-}
-
-function mostrarEstadoHeroMedia(mensaje, tipo) {
-    const el = document.getElementById('hero-media-estado');
-    if (!el) return;
-    el.textContent = mensaje;
-    el.className = tipo === 'exito' ? 'text-xs text-rgbNeon' : 'text-xs text-red-400';
-    el.classList.remove('hidden');
-}
-
-// ------------------------------------------------------------
-// Subir / reemplazar el video del hero
-// ------------------------------------------------------------
-async function subirHeroVideo() {
-    if (!esStaff()) return;
-    const input = document.getElementById('hero-input-video');
-    const file = input.files[0];
-    if (!file) {
-        mostrarEstadoHeroMedia('Selecciona un archivo de video primero.', 'error');
-        return;
-    }
-    if (!['video/mp4', 'video/webm'].includes(file.type)) {
-        mostrarEstadoHeroMedia('Solo se permiten archivos MP4 o WEBM.', 'error');
-        return;
-    }
-    if (file.size > 30 * 1024 * 1024) {
-        mostrarEstadoHeroMedia('El video no debe superar 30MB.', 'error');
-        return;
-    }
-
-    try {
-        mostrarEstadoHeroMedia('Subiendo video...', 'exito');
-
-        // Borra el video anterior del hero si existía (libera espacio)
-        const { data: actual } = await supabaseClient.from('hero_media').select('video_ruta').eq('id', 1).single();
-        if (actual?.video_ruta) {
-            await supabaseClient.storage.from(NOMBRE_BUCKET).remove([actual.video_ruta]);
-        }
-
-        const nombreLimpio = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_');
-        const ruta = `${CARPETA_HERO}/${Date.now()}_${nombreLimpio}`;
-
-        const { error: errorSubida } = await supabaseClient.storage.from(NOMBRE_BUCKET).upload(ruta, file, { upsert: false });
-        if (errorSubida) throw errorSubida;
-
-        const { error: errorUpdate } = await supabaseClient
-            .from('hero_media')
-            .update({ tipo: 'video', video_ruta: ruta, fotos_rutas: [], actualizado_en: new Date().toISOString() })
-            .eq('id', 1);
-        if (errorUpdate) throw errorUpdate;
-
-        mostrarEstadoHeroMedia('✅ Video actualizado.', 'exito');
-        await cargarHeroMedia();
-        input.value = '';
-    } catch (error) {
-        mostrarEstadoHeroMedia(`❌ ${error.message}`, 'error');
-    }
-}
-
-// ------------------------------------------------------------
-// Subir / reemplazar las fotos rotativas del hero
-// ------------------------------------------------------------
-async function subirHeroFotos() {
-    if (!esStaff()) return;
-    const input = document.getElementById('hero-input-fotos');
-    const files = Array.from(input.files);
-    if (files.length === 0) {
-        mostrarEstadoHeroMedia('Selecciona al menos una foto.', 'error');
-        return;
-    }
-    for (const f of files) {
-        if (!['image/jpeg', 'image/png', 'image/webp'].includes(f.type)) {
-            mostrarEstadoHeroMedia(`"${f.name}" no es JPG, PNG o WEBP.`, 'error');
-            return;
-        }
-        if (f.size > 8 * 1024 * 1024) {
-            mostrarEstadoHeroMedia(`"${f.name}" supera los 8MB.`, 'error');
-            return;
-        }
-    }
-
-    try {
-        mostrarEstadoHeroMedia('Subiendo fotos...', 'exito');
-
-        // Borra fotos anteriores del hero
-        const { data: actual } = await supabaseClient.from('hero_media').select('fotos_rutas').eq('id', 1).single();
-        if (actual?.fotos_rutas?.length > 0) {
-            await supabaseClient.storage.from(NOMBRE_BUCKET).remove(actual.fotos_rutas);
-        }
-
-        const rutasNuevas = [];
-        for (const file of files) {
-            const nombreLimpio = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_');
-            const ruta = `${CARPETA_HERO}/${Date.now()}_${nombreLimpio}`;
-            const { error: errorSubida } = await supabaseClient.storage.from(NOMBRE_BUCKET).upload(ruta, file, { upsert: false });
-            if (errorSubida) throw errorSubida;
-            rutasNuevas.push(ruta);
-        }
-
-        const { error: errorUpdate } = await supabaseClient
-            .from('hero_media')
-            .update({ tipo: 'fotos', video_ruta: null, fotos_rutas: rutasNuevas, actualizado_en: new Date().toISOString() })
-            .eq('id', 1);
-        if (errorUpdate) throw errorUpdate;
-
-        mostrarEstadoHeroMedia('✅ Fotos actualizadas.', 'exito');
-        await cargarHeroMedia();
-        input.value = '';
-    } catch (error) {
-        mostrarEstadoHeroMedia(`❌ ${error.message}`, 'error');
-    }
-}
-
-// ------------------------------------------------------------
-// Quitar toda la media (vuelve al placeholder original)
-// ------------------------------------------------------------
-async function quitarHeroMedia() {
-    if (!esStaff()) return;
-    if (!confirm('¿Quitar el video/fotos de la portada y volver al placeholder?')) return;
-
-    try {
-        const { data: actual } = await supabaseClient.from('hero_media').select('video_ruta, fotos_rutas').eq('id', 1).single();
-        const rutasABorrar = [];
-        if (actual?.video_ruta) rutasABorrar.push(actual.video_ruta);
-        if (actual?.fotos_rutas?.length > 0) rutasABorrar.push(...actual.fotos_rutas);
-        if (rutasABorrar.length > 0) {
-            await supabaseClient.storage.from(NOMBRE_BUCKET).remove(rutasABorrar);
-        }
-
-        await supabaseClient
-            .from('hero_media')
-            .update({ tipo: 'ninguno', video_ruta: null, fotos_rutas: [], actualizado_en: new Date().toISOString() })
-            .eq('id', 1);
-
-        mostrarEstadoHeroMedia('✅ Media eliminada.', 'exito');
-        location.reload(); // recarga simple para restaurar el placeholder original del HTML
-    } catch (error) {
-        mostrarEstadoHeroMedia(`❌ ${error.message}`, 'error');
-    }
-}
-
-// ============================================================
-// REACCIONES ("me gusta") — identificador anónimo + alternar
-// ============================================================
-function obtenerIdentificadorReaccion() {
-    if (perfilActual?.id) return perfilActual.id;
-    let idAnonimo = localStorage.getItem('iavid_id_anonimo');
-    if (!idAnonimo) {
-        idAnonimo = 'anon-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
-        localStorage.setItem('iavid_id_anonimo', idAnonimo);
-    }
-    return idAnonimo;
-}
-
-function obtenerSetLikesPropios() {
-    try {
-        return new Set(JSON.parse(localStorage.getItem('iavid_likes_dados') || '[]'));
-    } catch {
-        return new Set();
-    }
-}
-
-function guardarSetLikesPropios(set) {
-    localStorage.setItem('iavid_likes_dados', JSON.stringify([...set]));
-}
-
-function yaDioLikeA(publicacionId) {
-    return obtenerSetLikesPropios().has(publicacionId);
-}
-
-async function alternarLikeArticuloActual() {
-    if (idPublicacionActualEnModal === null) return;
-    const id = idPublicacionActualEnModal;
-    const identificador = obtenerIdentificadorReaccion();
-    const likesPropios = obtenerSetLikesPropios();
-    const btnLike = document.getElementById('modal-btn-like');
-    const contadorEl = document.getElementById('modal-likes-count');
-
-    try {
-        if (likesPropios.has(id)) {
-            await supabaseClient.from('reacciones').delete().eq('publicacion_id', id).eq('identificador', identificador);
-            likesPropios.delete(id);
-            btnLike.classList.remove('text-rgbPurple');
-            contadorEl.textContent = Math.max(0, parseInt(contadorEl.textContent, 10) - 1);
-        } else {
-            await supabaseClient.from('reacciones').insert({ publicacion_id: id, identificador });
-            likesPropios.add(id);
-            btnLike.classList.add('text-rgbPurple');
-            contadorEl.textContent = parseInt(contadorEl.textContent, 10) + 1;
-        }
-        guardarSetLikesPropios(likesPropios);
-        await recargarListaPublicaciones();
-    } catch (error) {
-        console.error('Error al dar like:', error);
-    }
-}
-
-    </script>
-
-    <!-- ========================================== -->
     <!-- SCRIPTS                                    -->
     <!-- ========================================== -->
     <script>
-        // ============================================================
-        // BASE DE ARTÍCULOS
-        // ============================================================
-        // Vacío intencionalmente: los 3 artículos de ejemplo que
-        // venían predeterminados (Alien Isolation, Tokens de Combate,
-        // FSM vs Behavior Trees) fueron eliminados a petición. Todo
-        // el contenido ahora viene de la comunidad vía Supabase
-        // (ver publicacionesDinamicas más abajo).
-        const baseDeDatosArticulos = [];
+    // ============================================================
+    // SUPABASE
+    // ============================================================
+    const SUPABASE_URL = 'https://qiewkzfcckezjvxarqgc.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFpZXdremZjY2tlemp2eGFycWdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MjM5ODksImV4cCI6MjA5NzM5OTk4OX0.UHyF93Bmjfydo-cdbfCLvfwqr2U75VL_oZ33ePadzJo';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // ============================================================
-        // PUBLICACIONES DINÁMICAS (desde Supabase)
-        // ============================================================
-        // Se guardan aparte de baseDeDatosArticulos para no tocar esa
-        // estructura; se combinan solo al momento de renderizar.
-        // Usamos IDs de string con prefijo "db-" para no chocar con
-        // los IDs numéricos de los artículos estáticos.
-        let publicacionesDinamicas = [];
+    let sesionActual = null;
+    let perfilActual = null;
 
-        async function cargarPublicacionesDinamicas() {
-            if (typeof supabaseClient === 'undefined') return [];
-            const { data, error } = await supabaseClient
-                .from('publicaciones')
-                .select(`
-                    id, titulo, categoria, contenido, creado_en, ultima_hora,
-                    perfiles:autor_id ( nombre ),
-                    archivos_adjuntos ( id, tipo, ruta_storage, nombre_original ),
-                    reacciones ( id )
-                `)
-                .order('creado_en', { ascending: false });
+    async function registrarUsuario(email, password, nombre) {
+        const { data, error } = await supabaseClient.auth.signUp({ email, password, options: { data: { nombre } } });
+        if (error) throw error;
+        return data;
+    }
+    async function iniciarSesion(email, password) {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        await cargarPerfilActual();
+        return data;
+    }
+    async function cerrarSesion() {
+        await supabaseClient.auth.signOut();
+        sesionActual = null; perfilActual = null;
+        actualizarUIPorRol();
+    }
+    async function cargarPerfilActual() {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        sesionActual = session;
+        if (!session) { perfilActual = null; actualizarUIPorRol(); return null; }
+        const { data, error } = await supabaseClient.from('perfiles').select('id, nombre, rol').eq('id', session.user.id).single();
+        perfilActual = error ? null : data;
+        actualizarUIPorRol();
+        return perfilActual;
+    }
+    function actualizarUIPorRol() {
+        const rol = perfilActual?.rol || null;
+        const logueado = !!sesionActual;
+        document.querySelectorAll('[data-rol-visible]').forEach(el => {
+            const req = el.getAttribute('data-rol-visible');
+            let mostrar = false;
+            if (req === 'visitante') mostrar = !logueado;
+            else if (req === 'autenticado') mostrar = logueado;
+            else if (req === 'publicador') mostrar = rol === 'publicador' || rol === 'staff';
+            else if (req === 'staff') mostrar = rol === 'staff';
+            el.classList.toggle('hidden', !mostrar);
+            if (mostrar && el.tagName !== 'BUTTON' && !el.classList.contains('flex')) el.classList.add('flex');
+        });
+        const nombreEl = document.getElementById('nombre-usuario-actual');
+        if (nombreEl) nombreEl.textContent = perfilActual?.nombre || '';
+    }
+    supabaseClient.auth.onAuthStateChange((_e, session) => {
+        sesionActual = session;
+        if (session) cargarPerfilActual();
+        else { perfilActual = null; actualizarUIPorRol(); }
+    });
 
-            if (error) {
-                console.error('Error cargando publicaciones:', error);
-                return [];
-            }
+    // ============================================================
+    // STORAGE / PUBLICADOR
+    // ============================================================
+    const NOMBRE_BUCKET = 'publicaciones-media';
+    const LIMITES_ARCHIVO = {
+        imagen: { tamanoMaxMB: 8, tipos: ['image/jpeg','image/png','image/webp'] },
+        video:  { tamanoMaxMB: 30, tipos: ['video/mp4','video/webm'] },
+        pdf:    { tamanoMaxMB: 15, tipos: ['application/pdf'] }
+    };
+    function detectarTipoArchivo(file) {
+        if (LIMITES_ARCHIVO.imagen.tipos.includes(file.type)) return 'imagen';
+        if (LIMITES_ARCHIVO.video.tipos.includes(file.type)) return 'video';
+        if (LIMITES_ARCHIVO.pdf.tipos.includes(file.type)) return 'pdf';
+        return null;
+    }
+    function validarArchivo(file) {
+        const tipo = detectarTipoArchivo(file);
+        if (!tipo) return { valido: false, error: `Tipo no permitido: ${file.type}` };
+        const limiteMB = LIMITES_ARCHIVO[tipo].tamanoMaxMB;
+        const tamanoMB = file.size / (1024 * 1024);
+        if (tamanoMB > limiteMB) return { valido: false, error: `"${file.name}" supera ${limiteMB}MB` };
+        return { valido: true, tipo };
+    }
+    function obtenerUrlPublica(rutaStorage) {
+        const { data } = supabaseClient.storage.from(NOMBRE_BUCKET).getPublicUrl(rutaStorage);
+        return data.publicUrl;
+    }
+    async function subirArchivoAdjunto(file, publicacionId) {
+        const v = validarArchivo(file);
+        if (!v.valido) throw new Error(v.error);
+        const nombreLimpio = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]/g,'_');
+        const ruta = `${perfilActual.id}/${Date.now()}_${nombreLimpio}`;
+        const { error: e1 } = await supabaseClient.storage.from(NOMBRE_BUCKET).upload(ruta, file, { cacheControl:'3600', upsert:false });
+        if (e1) throw e1;
+        const { error: e2 } = await supabaseClient.from('archivos_adjuntos').insert({ publicacion_id: publicacionId, tipo: v.tipo, ruta_storage: ruta, nombre_original: file.name, tamano_bytes: file.size });
+        if (e2) throw e2;
+        return ruta;
+    }
+    async function crearPublicacion({ titulo, categoria, contenido, archivosSeleccionados }) {
+        if (!perfilActual || !['publicador','staff'].includes(perfilActual.rol)) throw new Error('Sin permiso para publicar.');
+        for (const f of archivosSeleccionados) { const v = validarArchivo(f); if (!v.valido) throw new Error(v.error); }
+        const { data: nuevoPost, error } = await supabaseClient.from('publicaciones').insert({ autor_id: perfilActual.id, titulo, categoria, contenido }).select().single();
+        if (error) throw error;
+        for (const file of archivosSeleccionados) await subirArchivoAdjunto(file, nuevoPost.id);
+        return nuevoPost;
+    }
+    async function manejarEnvioPublicacion(event) {
+        event.preventDefault();
+        const form = event.target;
+        const btn = form.querySelector('button[type="submit"]');
+        const titulo = form.titulo.value.trim();
+        const categoria = form.categoria.value;
+        const contenido = form.contenido.value.trim();
+        const archivos = form.archivos.files ? Array.from(form.archivos.files) : [];
+        if (!titulo || !contenido) { mostrarEstadoPublicar('Completa título y contenido.','error'); return; }
+        btn.disabled = true; btn.textContent = 'Publicando...';
+        try {
+            await crearPublicacion({ titulo, categoria, contenido, archivosSeleccionados: archivos });
+            mostrarEstadoPublicar('✅ ¡Publicación creada!','exito');
+            form.reset();
+            await recargarListaPublicaciones();
+        } catch(e) {
+            mostrarEstadoPublicar(`❌ ${e.message}`,'error');
+        } finally { btn.disabled = false; btn.textContent = 'Publicar'; }
+    }
+    function mostrarEstadoPublicar(msg, tipo) {
+        const el = document.getElementById('publicar-estado');
+        if (!el) return;
+        el.textContent = msg;
+        el.className = tipo === 'exito' ? 'text-xs text-rgbNeon' : 'text-xs text-red-400';
+        el.classList.remove('hidden');
+    }
 
-            // Ordena: última hora primero, luego por fecha (ya viene
-            // ordenado por fecha desde la consulta, solo reubicamos
-            // los marcados como última hora al frente).
-            const lista = data || [];
-            const urgentes = lista.filter(p => p.ultima_hora);
-            const normales = lista.filter(p => !p.ultima_hora);
-            return [...urgentes, ...normales];
-        }
+    // ============================================================
+    // STAFF
+    // ============================================================
+    function esStaff() { return perfilActual?.rol === 'staff'; }
+    function escaparHTML(t) { const d = document.createElement('div'); d.textContent = t ?? ''; return d.innerHTML; }
 
-        // Construye el bloque HTML de archivos adjuntos (imágenes,
-        // video, pdf) para insertar dentro del modal de lectura.
-        function construirHTMLAdjuntos(adjuntos) {
-            if (!adjuntos || adjuntos.length === 0) return '';
-            const bloques = adjuntos.map(a => {
-                const url = obtenerUrlPublica(a.ruta_storage);
-                if (a.tipo === 'imagen') {
-                    return `<img src="${url}" alt="${a.nombre_original || ''}" class="rounded-lg border border-gray-800 max-w-full my-2">`;
-                }
-                if (a.tipo === 'video') {
-                    return `<video controls class="rounded-lg border border-gray-800 max-w-full my-2"><source src="${url}"></video>`;
-                }
-                if (a.tipo === 'pdf') {
-                    return `<a href="${url}" target="_blank" rel="noopener" class="flex items-center gap-2 bg-gamingDark border border-gray-700 rounded-lg p-3 my-2 hover:border-rgbCyan text-sm text-rgbCyan"><i data-lucide="file-text" class="w-4 h-4"></i> ${a.nombre_original || 'Ver PDF'}</a>`;
-                }
-                return '';
-            });
-            return `<div class="space-y-2">${bloques.join('')}</div>`;
-        }
-
-        // Encuentra la primera imagen entre los adjuntos de un post,
-        // para usarla como foto de portada en las tarjetas.
-        function obtenerFotoPortada(adjuntos) {
-            if (!adjuntos || adjuntos.length === 0) return null;
-            const primeraImagen = adjuntos.find(a => a.tipo === 'imagen');
-            return primeraImagen ? obtenerUrlPublica(primeraImagen.ruta_storage) : null;
-        }
-
-        // Recarga la lista combinada (estáticos + dinámicos) — se
-        // llama tras crear, editar o eliminar una publicación.
-        async function recargarListaPublicaciones() {
-            publicacionesDinamicas = await cargarPublicacionesDinamicas();
-            renderizarArticulos();
-            renderizarTopReacciones();
-        }
-
-        // ============================================================
-        // FORMATEO COMÚN: dinámicos + estáticos a un solo formato
-        // ============================================================
-        function formatearTodosLosArticulos() {
-            const dinamicosFormateados = publicacionesDinamicas.map(p => ({
-                id: `db-${p.id}`,
-                idOriginal: p.id,
-                categoria: p.categoria,
-                bordeColor: 'hover:border-rgbNeon/50',
-                titulo: p.titulo,
-                fecha: new Date(p.creado_en).toLocaleDateString('es-PA', { year: 'numeric', month: 'long' }),
-                descripcionCorta: (p.contenido || '').replace(/<[^>]*>/g, '').slice(0, 140) + '…',
-                contenidoCompleto: (p.contenido || '') + construirHTMLAdjuntos(p.archivos_adjuntos),
-                contenidoTextoPlano: (p.contenido || '').replace(/<[^>]*>/g, '').toLowerCase(),
-                autorNombre: p.perfiles?.nombre || null,
-                fotoPortada: obtenerFotoPortada(p.archivos_adjuntos),
-                ultimaHora: !!p.ultima_hora,
-                totalLikes: p.reacciones?.length || 0,
-                esDinamico: true
-            }));
-            return [...dinamicosFormateados, ...baseDeDatosArticulos.map(a => ({ ...a, contenidoTextoPlano: (a.titulo + ' ' + a.descripcionCorta).toLowerCase(), totalLikes: 0, ultimaHora: false, fotoPortada: null }))];
-        }
-
-        // ============================================================
-        // RENDER DE UNA TARJETA (reusable: grilla normal, top 6, guías)
-        // ============================================================
-        function renderizarTarjetaArticulo(articulo, opciones = {}) {
-            const mostrarLikes = opciones.mostrarLikes || false;
-            return `
-                <div class="group bg-gamingGray rounded-xl border ${articulo.ultimaHora ? 'border-rgbNeon' : 'border-gray-800'} overflow-hidden ${articulo.bordeColor} transition-all duration-300 flex flex-col justify-between cursor-pointer relative" onclick="abrirModal('${articulo.id}')">
-                    ${articulo.ultimaHora ? `<span class="absolute top-3 right-3 bg-rgbNeon text-gamingDark text-[10px] font-extrabold uppercase tracking-wider px-2 py-1 rounded-md z-10">Última hora</span>` : ''}
-                    ${articulo.fotoPortada ? `<div class="h-40 w-full overflow-hidden"><img src="${articulo.fotoPortada}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"></div>` : ''}
-                    <div class="p-6 space-y-4">
-                        <div class="flex justify-between items-center text-xs">
-                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-rgbCyan to-rgbPurple font-bold uppercase tracking-wider">${articulo.categoria}</span>
-                            <span class="text-gray-500">${articulo.fecha}</span>
-                        </div>
-                        <h3 class="text-lg font-bold group-hover:text-rgbCyan transition-colors duration-200">${articulo.titulo}</h3>
-                        <p class="text-gray-400 text-sm line-clamp-3">${articulo.descripcionCorta}</p>
-                        ${articulo.autorNombre ? `<p class="text-[11px] text-rgbNeon">Por ${articulo.autorNombre} · Comunidad</p>` : ''}
+    async function listarTodasLasPublicaciones() {
+        const { data, error } = await supabaseClient.from('publicaciones').select(`id,titulo,categoria,contenido,creado_en,ultima_hora,perfiles:autor_id(nombre),archivos_adjuntos(id,tipo,ruta_storage,nombre_original)`).order('creado_en',{ascending:false});
+        if (error) throw error;
+        return data;
+    }
+    async function alternarUltimaHora(id, val) {
+        const { error } = await supabaseClient.from('publicaciones').update({ ultima_hora: !val }).eq('id', id);
+        if (error) { alert(error.message); return; }
+        await renderizarPanelStaffPosts();
+        await recargarListaPublicaciones();
+    }
+    async function editarPublicacion(id, obj) {
+        const { error } = await supabaseClient.from('publicaciones').update({ ...obj, actualizado_en: new Date().toISOString() }).eq('id', id);
+        if (error) throw error;
+    }
+    async function eliminarPublicacion(id) {
+        const { data: adj } = await supabaseClient.from('archivos_adjuntos').select('ruta_storage').eq('publicacion_id', id);
+        if (adj?.length) await supabaseClient.storage.from(NOMBRE_BUCKET).remove(adj.map(a => a.ruta_storage));
+        const { error } = await supabaseClient.from('publicaciones').delete().eq('id', id);
+        if (error) throw error;
+    }
+    async function listarUsuarios() {
+        const { data, error } = await supabaseClient.from('perfiles').select('id,nombre,rol,creado_en').order('creado_en',{ascending:false});
+        if (error) throw error;
+        return data;
+    }
+    async function cambiarRolUsuario(id, rol) {
+        if (!['visitante','publicador','staff'].includes(rol)) throw new Error('Rol inválido.');
+        const { error } = await supabaseClient.from('perfiles').update({ rol }).eq('id', id);
+        if (error) throw error;
+    }
+    async function renderizarPanelStaffPosts() {
+        const c = document.getElementById('staff-lista-posts');
+        if (!c || !esStaff()) return;
+        c.innerHTML = '<p class="text-gray-500 text-sm">Cargando...</p>';
+        try {
+            const posts = await listarTodasLasPublicaciones();
+            if (!posts.length) { c.innerHTML = '<p class="text-gray-500 text-sm">Sin publicaciones.</p>'; return; }
+            c.innerHTML = posts.map(p => `
+                <div class="bg-gamingDark border ${p.ultima_hora?'border-rgbNeon':'border-gray-800'} rounded-lg p-4 flex justify-between items-start gap-4">
+                    <div class="min-w-0">
+                        <p class="text-xs text-rgbCyan uppercase font-bold">${p.categoria}</p>
+                        <h4 class="font-bold text-white">${escaparHTML(p.titulo)}</h4>
+                        <p class="text-xs text-gray-500 mt-1">Por ${escaparHTML(p.perfiles?.nombre||'?')} · ${new Date(p.creado_en).toLocaleDateString('es-PA')}</p>
                     </div>
-                    <div class="p-6 pt-0 flex justify-between items-center">
-                        <span class="text-xs font-bold text-rgbNeon flex items-center space-x-1">
-                            <span>Leer Contenido Completo</span>
-                            <i data-lucide="arrow-up-right" class="w-3 h-3"></i>
-                        </span>
-                        ${mostrarLikes ? `<span class="text-xs text-gray-500 flex items-center gap-1"><i data-lucide="heart" class="w-3.5 h-3.5 text-rgbPurple"></i>${articulo.totalLikes}</span>` : ''}
+                    <div class="flex gap-2 flex-shrink-0 items-center flex-wrap justify-end">
+                        <button onclick="alternarUltimaHora(${p.id},${p.ultima_hora})" class="text-xs ${p.ultima_hora?'bg-rgbNeon text-gamingDark':'bg-gray-800 text-gray-300'} px-3 py-1.5 rounded-md font-semibold">${p.ultima_hora?'★ Última hora':'Marcar última hora'}</button>
+                        <button onclick="prepararEdicionPost(${p.id})" class="text-xs bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-md font-semibold">Editar</button>
+                        <button onclick="confirmarEliminarPost(${p.id})" class="text-xs bg-red-900/40 text-red-300 hover:bg-red-900/70 px-3 py-1.5 rounded-md font-semibold">Eliminar</button>
                     </div>
-                </div>
-            `;
+                </div>`).join('');
+        } catch(e) { c.innerHTML = `<p class="text-red-400 text-sm">${e.message}</p>`; }
+    }
+    async function confirmarEliminarPost(id) {
+        if (!confirm('¿Eliminar esta publicación y sus archivos?')) return;
+        try { await eliminarPublicacion(id); await renderizarPanelStaffPosts(); await recargarListaPublicaciones(); }
+        catch(e) { alert(e.message); }
+    }
+    async function renderizarPanelStaffUsuarios() {
+        const c = document.getElementById('staff-lista-usuarios');
+        if (!c || !esStaff()) return;
+        c.innerHTML = '<p class="text-gray-500 text-sm">Cargando...</p>';
+        try {
+            const users = await listarUsuarios();
+            c.innerHTML = users.map(u => `
+                <div class="bg-gamingDark border border-gray-800 rounded-lg p-3 flex justify-between items-center gap-4">
+                    <div><p class="font-semibold text-sm text-white">${escaparHTML(u.nombre)}</p><p class="text-xs text-gray-500">Rol: <span class="text-rgbCyan">${u.rol}</span></p></div>
+                    <select onchange="confirmarCambioRol('${u.id}',this.value,'${escaparHTML(u.nombre)}')" class="bg-gamingGray border border-gray-700 text-xs rounded-md px-2 py-1.5 text-gray-200">
+                        <option value="visitante" ${u.rol==='visitante'?'selected':''}>Visitante</option>
+                        <option value="publicador" ${u.rol==='publicador'?'selected':''}>Publicador</option>
+                        <option value="staff" ${u.rol==='staff'?'selected':''}>Staff</option>
+                    </select>
+                </div>`).join('');
+        } catch(e) { c.innerHTML = `<p class="text-red-400 text-sm">${e.message}</p>`; }
+    }
+    async function confirmarCambioRol(id, rol, nombre) {
+        if (!confirm(`¿Cambiar rol de "${nombre}" a "${rol}"?`)) { await renderizarPanelStaffUsuarios(); return; }
+        try { await cambiarRolUsuario(id, rol); await renderizarPanelStaffUsuarios(); }
+        catch(e) { alert(e.message); }
+    }
+    async function prepararEdicionPost(id) {
+        try {
+            const posts = await listarTodasLasPublicaciones();
+            const p = posts.find(x => x.id === id);
+            if (!p) return;
+            const t = prompt('Nuevo título:', p.titulo); if (t === null) return;
+            const c = prompt('Nuevo contenido (HTML):', p.contenido); if (c === null) return;
+            await editarPublicacion(id, { titulo: t, categoria: p.categoria, contenido: c });
+            await renderizarPanelStaffPosts();
+            await recargarListaPublicaciones();
+        } catch(e) { alert(e.message); }
+    }
+
+    // ============================================================
+    // HERO MEDIA
+    // ============================================================
+    const CARPETA_HERO = 'hero';
+    let intervaloCarruselHero = null;
+
+    async function cargarHeroMedia() {
+        const { data, error } = await supabaseClient.from('hero_media').select('tipo,video_ruta,fotos_rutas').eq('id',1).single();
+        if (!error) renderizarHeroMedia(data);
+    }
+    function renderizarHeroMedia(data) {
+        const c = document.getElementById('hero-media-contenedor');
+        const caja = document.getElementById('hero-caja-exterior');
+        const barra = document.getElementById('hero-barra-terminal');
+        if (!c) return;
+        if (intervaloCarruselHero) { clearInterval(intervaloCarruselHero); intervaloCarruselHero = null; }
+        if (!data || data.tipo === 'ninguno') {
+            if (barra) barra.classList.remove('hidden');
+            if (caja) caja.classList.add('border','border-gray-800');
+            c.classList.add('p-6'); return;
         }
-
-        // ============================================================
-        // FILTRO POR GRUPO DE CATEGORÍA (Artículos / Guías / Todos)
-        // ============================================================
-        // "articulos" = Análisis de IA + Lógica e Implementación
-        // "guias"     = Tutorial de Inmersión
-        // "todos"     = sin filtro (Explorar Contenido)
-        let grupoFiltroActivo = 'todos';
-
-        const CATEGORIAS_POR_GRUPO = {
-            articulos: ['Análisis de IA', 'Lógica e Implementación'],
-            guias: ['Tutorial de Inmersión']
-        };
-
-        function filtrarArticulosPorGrupo(grupo) {
-            grupoFiltroActivo = grupo;
-            renderizarArticulos();
-
-            const chip = document.getElementById('filtro-activo-chip');
-            const texto = document.getElementById('filtro-activo-texto');
-            const titulo = document.getElementById('articulos-titulo-seccion');
-
-            if (grupo === 'todos') {
-                chip.classList.add('hidden');
-                titulo.textContent = 'Análisis y Guías Pedagógicas';
-            } else if (grupo === 'articulos') {
-                chip.classList.remove('hidden');
-                texto.textContent = 'Filtrando: Artículos';
-                titulo.textContent = 'Artículos';
-            } else if (grupo === 'guias') {
-                chip.classList.remove('hidden');
-                texto.textContent = 'Filtrando: Guías Prácticas';
-                titulo.textContent = 'Guías Prácticas';
+        if (barra) barra.classList.add('hidden');
+        if (caja) caja.classList.remove('border','border-gray-800');
+        c.classList.remove('p-6');
+        if (data.tipo === 'video' && data.video_ruta) {
+            c.innerHTML = `<video src="${obtenerUrlPublica(data.video_ruta)}" autoplay loop muted playsinline class="w-full h-full object-cover"></video>`;
+        } else if (data.tipo === 'fotos' && data.fotos_rutas?.length) {
+            const urls = data.fotos_rutas.map(r => obtenerUrlPublica(r));
+            c.innerHTML = `<img id="hero-carrusel-img" src="${urls[0]}" class="w-full h-full object-cover transition-opacity duration-500">`;
+            if (urls.length > 1) {
+                let i = 0;
+                intervaloCarruselHero = setInterval(() => {
+                    i = (i+1) % urls.length;
+                    const img = document.getElementById('hero-carrusel-img');
+                    if (img) { img.style.opacity='0'; setTimeout(()=>{ img.src=urls[i]; img.style.opacity='1'; },300); }
+                }, 4000);
             }
-            lucide.createIcons();
         }
-
-        function limpiarFiltroArticulos() {
-            filtrarArticulosPorGrupo('todos');
+    }
+    function abrirModalHeroMedia() { const m = document.getElementById('hero-media-modal'); m.classList.remove('hidden'); m.classList.add('flex'); lucide.createIcons(); }
+    function cerrarModalHeroMedia() { const m = document.getElementById('hero-media-modal'); m.classList.add('hidden'); m.classList.remove('flex'); }
+    function mostrarEstadoHeroMedia(msg, tipo) {
+        const el = document.getElementById('hero-media-estado');
+        el.textContent = msg;
+        el.className = tipo==='exito'?'text-xs text-rgbNeon':'text-xs text-red-400';
+        el.classList.remove('hidden');
+    }
+    async function subirHeroVideo() {
+        if (!esStaff()) return;
+        const input = document.getElementById('hero-input-video');
+        const file = input.files[0];
+        if (!file) { mostrarEstadoHeroMedia('Selecciona un video.','error'); return; }
+        if (!['video/mp4','video/webm'].includes(file.type)) { mostrarEstadoHeroMedia('Solo MP4/WEBM.','error'); return; }
+        if (file.size > 30*1024*1024) { mostrarEstadoHeroMedia('Máximo 30MB.','error'); return; }
+        try {
+            mostrarEstadoHeroMedia('Subiendo...','exito');
+            const { data: actual } = await supabaseClient.from('hero_media').select('video_ruta').eq('id',1).single();
+            if (actual?.video_ruta) await supabaseClient.storage.from(NOMBRE_BUCKET).remove([actual.video_ruta]);
+            const nombre = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]/g,'_');
+            const ruta = `${CARPETA_HERO}/${Date.now()}_${nombre}`;
+            const { error: e1 } = await supabaseClient.storage.from(NOMBRE_BUCKET).upload(ruta, file, {upsert:false});
+            if (e1) throw e1;
+            const { error: e2 } = await supabaseClient.from('hero_media').update({ tipo:'video', video_ruta:ruta, fotos_rutas:[], actualizado_en:new Date().toISOString() }).eq('id',1);
+            if (e2) throw e2;
+            mostrarEstadoHeroMedia('✅ Video actualizado.','exito');
+            await cargarHeroMedia(); input.value='';
+        } catch(e) { mostrarEstadoHeroMedia(`❌ ${e.message}`,'error'); }
+    }
+    async function subirHeroFotos() {
+        if (!esStaff()) return;
+        const input = document.getElementById('hero-input-fotos');
+        const files = Array.from(input.files);
+        if (!files.length) { mostrarEstadoHeroMedia('Selecciona fotos.','error'); return; }
+        for (const f of files) {
+            if (!['image/jpeg','image/png','image/webp'].includes(f.type)) { mostrarEstadoHeroMedia(`"${f.name}" no es JPG/PNG/WEBP.`,'error'); return; }
+            if (f.size > 8*1024*1024) { mostrarEstadoHeroMedia(`"${f.name}" supera 8MB.`,'error'); return; }
         }
-
-        // ============================================================
-        // RENDER DE TARJETAS (combinando estáticos + dinámicos)
-        // ============================================================
-        function renderizarArticulos() {
-            const contenedor = document.getElementById('contenedor-articulos');
-            contenedor.innerHTML = '';
-            let todosLosArticulos = formatearTodosLosArticulos();
-
-            if (grupoFiltroActivo !== 'todos') {
-                const categoriasPermitidas = CATEGORIAS_POR_GRUPO[grupoFiltroActivo] || [];
-                todosLosArticulos = todosLosArticulos.filter(a => categoriasPermitidas.includes(a.categoria));
+        try {
+            mostrarEstadoHeroMedia('Subiendo fotos...','exito');
+            const { data: actual } = await supabaseClient.from('hero_media').select('fotos_rutas').eq('id',1).single();
+            if (actual?.fotos_rutas?.length) await supabaseClient.storage.from(NOMBRE_BUCKET).remove(actual.fotos_rutas);
+            const rutas = [];
+            for (const f of files) {
+                const nombre = f.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]/g,'_');
+                const ruta = `${CARPETA_HERO}/${Date.now()}_${nombre}`;
+                const { error } = await supabaseClient.storage.from(NOMBRE_BUCKET).upload(ruta, f, {upsert:false});
+                if (error) throw error;
+                rutas.push(ruta);
             }
+            const { error } = await supabaseClient.from('hero_media').update({ tipo:'fotos', video_ruta:null, fotos_rutas:rutas, actualizado_en:new Date().toISOString() }).eq('id',1);
+            if (error) throw error;
+            mostrarEstadoHeroMedia('✅ Fotos actualizadas.','exito');
+            await cargarHeroMedia(); input.value='';
+        } catch(e) { mostrarEstadoHeroMedia(`❌ ${e.message}`,'error'); }
+    }
+    async function quitarHeroMedia() {
+        if (!esStaff() || !confirm('¿Quitar la media del hero?')) return;
+        try {
+            const { data: actual } = await supabaseClient.from('hero_media').select('video_ruta,fotos_rutas').eq('id',1).single();
+            const rutas = [];
+            if (actual?.video_ruta) rutas.push(actual.video_ruta);
+            if (actual?.fotos_rutas?.length) rutas.push(...actual.fotos_rutas);
+            if (rutas.length) await supabaseClient.storage.from(NOMBRE_BUCKET).remove(rutas);
+            await supabaseClient.from('hero_media').update({ tipo:'ninguno', video_ruta:null, fotos_rutas:[], actualizado_en:new Date().toISOString() }).eq('id',1);
+            mostrarEstadoHeroMedia('✅ Media eliminada.','exito');
+            location.reload();
+        } catch(e) { mostrarEstadoHeroMedia(`❌ ${e.message}`,'error'); }
+    }
 
-            if (todosLosArticulos.length === 0) {
-                contenedor.innerHTML = '<p class="text-gray-500 text-sm col-span-full text-center py-8">No hay publicaciones en esta categoría todavía.</p>';
+    // ============================================================
+    // REACCIONES (likes) — artículos
+    // ============================================================
+    function obtenerIdentificadorReaccion() {
+        if (perfilActual?.id) return perfilActual.id;
+        let id = localStorage.getItem('iavid_id_anonimo');
+        if (!id) { id = 'anon-' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('iavid_id_anonimo', id); }
+        return id;
+    }
+    function obtenerSetLikesPropios() { try { return new Set(JSON.parse(localStorage.getItem('iavid_likes_dados')||'[]')); } catch { return new Set(); } }
+    function guardarSetLikesPropios(s) { localStorage.setItem('iavid_likes_dados', JSON.stringify([...s])); }
+    function yaDioLikeA(id) { return obtenerSetLikesPropios().has(id); }
+
+    async function alternarLikeArticuloActual() {
+        if (idPublicacionActualEnModal === null) return;
+        const id = idPublicacionActualEnModal;
+        const identificador = obtenerIdentificadorReaccion();
+        const likes = obtenerSetLikesPropios();
+        const btn = document.getElementById('modal-btn-like');
+        const count = document.getElementById('modal-likes-count');
+        try {
+            if (likes.has(id)) {
+                await supabaseClient.from('reacciones').delete().eq('publicacion_id',id).eq('identificador',identificador);
+                likes.delete(id); btn.classList.remove('text-rgbPurple');
+                count.textContent = Math.max(0, parseInt(count.textContent,10)-1);
             } else {
-                todosLosArticulos.forEach(articulo => {
-                    contenedor.innerHTML += renderizarTarjetaArticulo(articulo);
-                });
+                await supabaseClient.from('reacciones').insert({ publicacion_id:id, identificador });
+                likes.add(id); btn.classList.add('text-rgbPurple');
+                count.textContent = parseInt(count.textContent,10)+1;
             }
-            lucide.createIcons();
-        }
+            guardarSetLikesPropios(likes);
+            await recargarListaPublicaciones();
+        } catch(e) { console.error(e); }
+    }
 
-        // ============================================================
-        // SECCIÓN: TOP 6 CON MÁS REACCIONES
-        // ============================================================
-        function renderizarTopReacciones() {
-            const seccion = document.getElementById('top-reacciones-seccion');
-            const contenedor = document.getElementById('contenedor-top-reacciones');
-            if (!seccion || !contenedor) return;
+    // ============================================================
+    // VALORACIONES DE GUÍAS (1-5 estrellas)
+    // ============================================================
+    // Requiere tabla en Supabase — ver SQL abajo en comentarios
+    function obtenerIdValorador() {
+        if (perfilActual?.id) return perfilActual.id;
+        let id = localStorage.getItem('iavid_id_valorador');
+        if (!id) { id = 'val-' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('iavid_id_valorador', id); }
+        return id;
+    }
 
-            const todos = formatearTodosLosArticulos().filter(a => a.totalLikes > 0);
-            if (todos.length === 0) {
-                seccion.classList.add('hidden');
-                return;
-            }
+    async function obtenerDatosValoracion(publicacionId) {
+        // Promedio y total
+        const { data: stats } = await supabaseClient
+            .from('valoraciones_guias')
+            .select('puntuacion')
+            .eq('publicacion_id', publicacionId);
 
-            const top6 = [...todos].sort((a, b) => b.totalLikes - a.totalLikes).slice(0, 6);
-            seccion.classList.remove('hidden');
-            contenedor.innerHTML = top6.map(a => renderizarTarjetaArticulo(a, { mostrarLikes: true })).join('');
-            lucide.createIcons();
-        }
+        const total = stats?.length || 0;
+        const promedio = total > 0 ? (stats.reduce((s,v) => s + v.puntuacion, 0) / total) : 0;
 
-        // ============================================================
-        // MODAL: GUÍAS COMPLETAS + BÚSQUEDA
-        // ============================================================
-        function abrirModalGuiasCompletas() {
-            const modal = document.getElementById('guias-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            document.getElementById('guias-buscador').value = '';
-            renderizarGuiasCompletas(formatearTodosLosArticulos());
-            lucide.createIcons();
-        }
+        // Mi propia valoración
+        const idValorador = obtenerIdValorador();
+        const { data: mia } = await supabaseClient
+            .from('valoraciones_guias')
+            .select('puntuacion')
+            .eq('publicacion_id', publicacionId)
+            .eq('identificador', idValorador)
+            .single();
 
-        function cerrarModalGuiasCompletas() {
-            const modal = document.getElementById('guias-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
+        return { promedio, total, miPuntuacion: mia?.puntuacion || 0 };
+    }
 
-        function renderizarGuiasCompletas(lista) {
-            const contenedor = document.getElementById('contenedor-guias-completas');
-            const sinResultados = document.getElementById('guias-sin-resultados');
-            if (lista.length === 0) {
-                contenedor.innerHTML = '';
-                sinResultados.classList.remove('hidden');
-                return;
-            }
-            sinResultados.classList.add('hidden');
-            contenedor.innerHTML = lista.map(a => renderizarTarjetaArticulo(a, { mostrarLikes: true })).join('');
-            lucide.createIcons();
-        }
+    async function valorarGuia(publicacionId, puntuacion) {
+        const identificador = obtenerIdValorador();
+        // Upsert: si ya valoró, actualiza; si no, inserta
+        const { error } = await supabaseClient
+            .from('valoraciones_guias')
+            .upsert({ publicacion_id: publicacionId, identificador, puntuacion }, { onConflict: 'publicacion_id,identificador' });
+        if (error) throw error;
+        // Refresca las estrellas en el modal
+        await renderizarEstrellasModal(publicacionId);
+        await recargarListaPublicaciones();
+    }
 
-        function filtrarGuiasCompletas() {
-            const termino = document.getElementById('guias-buscador').value.trim().toLowerCase();
-            const todos = formatearTodosLosArticulos();
-            if (!termino) {
-                renderizarGuiasCompletas(todos);
-                return;
-            }
-            const filtrados = todos.filter(a =>
-                a.titulo.toLowerCase().includes(termino) ||
-                a.categoria.toLowerCase().includes(termino) ||
-                (a.contenidoTextoPlano || '').includes(termino)
-            );
-            renderizarGuiasCompletas(filtrados);
-        }
+    async function renderizarEstrellasModal(publicacionId) {
+        const bloque = document.getElementById('modal-estrellas-bloque');
+        const contenedor = document.getElementById('modal-estrellas');
+        const label = document.getElementById('modal-promedio-label');
+        if (!bloque || !contenedor) return;
+        bloque.classList.remove('hidden');
 
-        // ============================================================
-        // MODAL + CARGA DINÁMICA DE GISCUS POR ARTÍCULO
-        // ============================================================
-        let idPublicacionActualEnModal = null;
+        const { promedio, total, miPuntuacion } = await obtenerDatosValoracion(publicacionId);
 
-        function abrirModal(id) {
-            let articulo;
-            let terminoGiscus;
-            idPublicacionActualEnModal = null;
+        contenedor.innerHTML = [1,2,3,4,5].map(n => `
+            <button class="star-btn text-xl ${n <= miPuntuacion ? 'text-yellow-400' : 'text-gray-600'} hover:text-yellow-300 transition-colors"
+                onclick="valorarGuia(${publicacionId}, ${n})" title="${n} estrellas">★</button>
+        `).join('');
 
-            if (typeof id === 'string' && id.startsWith('db-')) {
-                const idReal = parseInt(id.replace('db-', ''), 10);
-                const post = publicacionesDinamicas.find(p => p.id === idReal);
-                if (!post) return;
-                articulo = {
-                    categoria: post.categoria,
-                    titulo: post.titulo,
-                    fecha: new Date(post.creado_en).toLocaleDateString('es-PA', { year: 'numeric', month: 'long' }),
-                    contenidoCompleto: (post.contenido || '') + construirHTMLAdjuntos(post.archivos_adjuntos)
-                };
-                terminoGiscus = `comunidad-post-${idReal}`;
-                idPublicacionActualEnModal = idReal;
+        label.textContent = total > 0
+            ? `${promedio.toFixed(1)} ★ (${total} voto${total !== 1 ? 's' : ''})`
+            : 'Sin valoraciones aún';
+    }
 
-                const btnLike = document.getElementById('modal-btn-like');
+    // Calcula promedio de valoraciones para ordenar guías en el inicio
+    async function obtenerPromedioGuias(publicacionIds) {
+        if (!publicacionIds.length) return {};
+        const { data } = await supabaseClient
+            .from('valoraciones_guias')
+            .select('publicacion_id, puntuacion')
+            .in('publicacion_id', publicacionIds);
+        const mapa = {};
+        (data || []).forEach(v => {
+            if (!mapa[v.publicacion_id]) mapa[v.publicacion_id] = { suma: 0, total: 0 };
+            mapa[v.publicacion_id].suma += v.puntuacion;
+            mapa[v.publicacion_id].total += 1;
+        });
+        return mapa;
+    }
+
+    // ============================================================
+    // DATOS: cargar y formatear publicaciones
+    // ============================================================
+    let publicacionesDinamicas = [];
+    let mapaValoracionesGuias = {};
+
+    async function cargarPublicacionesDinamicas() {
+        const { data, error } = await supabaseClient
+            .from('publicaciones')
+            .select(`id,titulo,categoria,contenido,creado_en,ultima_hora,
+                perfiles:autor_id(nombre),
+                archivos_adjuntos(id,tipo,ruta_storage,nombre_original),
+                reacciones(id)`)
+            .order('creado_en', { ascending: false });
+        if (error) { console.error(error); return []; }
+        const lista = data || [];
+        return [...lista.filter(p=>p.ultima_hora), ...lista.filter(p=>!p.ultima_hora)];
+    }
+
+    function construirHTMLAdjuntos(adj) {
+        if (!adj?.length) return '';
+        return '<div class="space-y-2">' + adj.map(a => {
+            const url = obtenerUrlPublica(a.ruta_storage);
+            if (a.tipo==='imagen') return `<img src="${url}" alt="${a.nombre_original||''}" class="rounded-lg border border-gray-800 max-w-full my-2">`;
+            if (a.tipo==='video') return `<video controls class="rounded-lg border border-gray-800 max-w-full my-2"><source src="${url}"></video>`;
+            if (a.tipo==='pdf') return `<a href="${url}" target="_blank" rel="noopener" class="flex items-center gap-2 bg-gamingDark border border-gray-700 rounded-lg p-3 my-2 hover:border-rgbCyan text-sm text-rgbCyan"><i data-lucide="file-text" class="w-4 h-4"></i>${a.nombre_original||'Ver PDF'}</a>`;
+            return '';
+        }).join('') + '</div>';
+    }
+    function obtenerFotoPortada(adj) {
+        const img = adj?.find(a => a.tipo==='imagen');
+        return img ? obtenerUrlPublica(img.ruta_storage) : null;
+    }
+
+    async function recargarListaPublicaciones() {
+        publicacionesDinamicas = await cargarPublicacionesDinamicas();
+        // Pre-carga promedios de guías
+        const idsGuias = publicacionesDinamicas.filter(p => p.categoria === 'Tutorial de Inmersión').map(p => p.id);
+        mapaValoracionesGuias = await obtenerPromedioGuias(idsGuias);
+        renderizarPaginaActual();
+        renderizarTopReacciones();
+        renderizarTopGuias();
+    }
+
+    function obtenerPromedioGuia(id) {
+        const v = mapaValoracionesGuias[id];
+        return v ? v.suma / v.total : 0;
+    }
+    function obtenerTotalVotosGuia(id) {
+        return mapaValoracionesGuias[id]?.total || 0;
+    }
+
+    function formatearPublicacion(p) {
+        return {
+            id: `db-${p.id}`,
+            idOriginal: p.id,
+            categoria: p.categoria,
+            titulo: p.titulo,
+            fecha: new Date(p.creado_en).toLocaleDateString('es-PA',{year:'numeric',month:'long'}),
+            descripcionCorta: (p.contenido||'').replace(/<[^>]*>/g,'').slice(0,140)+'…',
+            contenidoCompleto: (p.contenido||'') + construirHTMLAdjuntos(p.archivos_adjuntos),
+            contenidoTextoPlano: (p.contenido||'').replace(/<[^>]*>/g,'').toLowerCase(),
+            autorNombre: p.perfiles?.nombre || null,
+            fotoPortada: obtenerFotoPortada(p.archivos_adjuntos),
+            ultimaHora: !!p.ultima_hora,
+            totalLikes: p.reacciones?.length || 0,
+            promedio: obtenerPromedioGuia(p.id),
+            totalVotos: obtenerTotalVotosGuia(p.id),
+            esGuia: p.categoria === 'Tutorial de Inmersión'
+        };
+    }
+
+    // ============================================================
+    // RENDER DE TARJETAS
+    // ============================================================
+    function renderizarTarjeta(art, opciones = {}) {
+        const estrellas = art.esGuia
+            ? `<div class="flex items-center gap-1 mt-1">
+                ${[1,2,3,4,5].map(n=>`<span class="text-xs ${n <= Math.round(art.promedio) ? 'text-yellow-400' : 'text-gray-700'}">★</span>`).join('')}
+                <span class="text-[10px] text-gray-500 ml-1">${art.totalVotos > 0 ? art.promedio.toFixed(1)+' ('+art.totalVotos+')' : 'Sin votos'}</span>
+               </div>` : '';
+        const likes = !art.esGuia && opciones.mostrarLikes
+            ? `<span class="text-xs text-gray-500 flex items-center gap-1"><i data-lucide="heart" class="w-3.5 h-3.5 text-rgbPurple"></i>${art.totalLikes}</span>` : '';
+        return `
+            <div class="group bg-gamingGray rounded-xl border ${art.ultimaHora?'border-rgbNeon':'border-gray-800'} overflow-hidden hover:border-gray-600 transition-all duration-300 flex flex-col justify-between cursor-pointer relative" onclick="abrirModal('${art.id}')">
+                ${art.ultimaHora?`<span class="absolute top-3 right-3 bg-rgbNeon text-gamingDark text-[10px] font-extrabold uppercase tracking-wider px-2 py-1 rounded-md z-10">Última hora</span>`:''}
+                ${art.fotoPortada?`<div class="h-40 w-full overflow-hidden"><img src="${art.fotoPortada}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"></div>`:''}
+                <div class="p-6 space-y-3 flex-1">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r ${art.esGuia?'from-rgbNeon to-rgbCyan':'from-rgbCyan to-rgbPurple'} font-bold uppercase tracking-wider">${art.categoria}</span>
+                        <span class="text-gray-500">${art.fecha}</span>
+                    </div>
+                    <h3 class="text-lg font-bold group-hover:text-rgbCyan transition-colors duration-200">${art.titulo}</h3>
+                    <p class="text-gray-400 text-sm line-clamp-3">${art.descripcionCorta}</p>
+                    ${estrellas}
+                    ${art.autorNombre?`<p class="text-[11px] text-rgbNeon">Por ${art.autorNombre}</p>`:''}
+                </div>
+                <div class="p-6 pt-0 flex justify-between items-center">
+                    <span class="text-xs font-bold text-rgbNeon flex items-center space-x-1">
+                        <span>${art.esGuia?'Leer Guía':'Leer Artículo'}</span>
+                        <i data-lucide="arrow-up-right" class="w-3 h-3"></i>
+                    </span>
+                    ${likes}
+                </div>
+            </div>`;
+    }
+
+    // ============================================================
+    // TOP 6 ARTÍCULOS (inicio)
+    // ============================================================
+    function renderizarTopReacciones() {
+        const sec = document.getElementById('top-reacciones-seccion');
+        const c = document.getElementById('contenedor-top-reacciones');
+        if (!sec || !c) return;
+        const arts = publicacionesDinamicas
+            .filter(p => p.categoria !== 'Tutorial de Inmersión' && (p.reacciones?.length||0) > 0)
+            .map(formatearPublicacion)
+            .sort((a,b) => b.totalLikes - a.totalLikes)
+            .slice(0,6);
+        if (!arts.length) { sec.classList.add('hidden'); return; }
+        sec.classList.remove('hidden');
+        c.innerHTML = arts.map(a => renderizarTarjeta(a, {mostrarLikes:true})).join('');
+        lucide.createIcons();
+    }
+
+    // ============================================================
+    // TOP 6 GUÍAS (inicio)
+    // ============================================================
+    function renderizarTopGuias() {
+        const sec = document.getElementById('top-guias-seccion');
+        const c = document.getElementById('contenedor-top-guias');
+        if (!sec || !c) return;
+        const guias = publicacionesDinamicas
+            .filter(p => p.categoria === 'Tutorial de Inmersión')
+            .map(formatearPublicacion)
+            .sort((a,b) => b.promedio - a.promedio || b.totalVotos - a.totalVotos)
+            .slice(0,6);
+        if (!guias.length) { sec.classList.add('hidden'); return; }
+        sec.classList.remove('hidden');
+        c.innerHTML = guias.map(a => renderizarTarjeta(a)).join('');
+        lucide.createIcons();
+    }
+
+    // ============================================================
+    // PÁGINA: ARTÍCULOS
+    // ============================================================
+    let filtroArticulosActual = 'todos';
+    function filtrarPaginaArticulos(cat) {
+        filtroArticulosActual = cat;
+        // Actualiza botones
+        document.querySelectorAll('.filtro-art-btn').forEach(b => {
+            b.classList.remove('border-rgbPurple','bg-rgbPurple/20','text-rgbPurple');
+            b.classList.add('border-gray-700','text-gray-400');
+        });
+        const mapa = { todos:'filtro-art-todos', 'Análisis de IA':'filtro-art-analisis', 'Lógica e Implementación':'filtro-art-logica', 'General':'filtro-art-general' };
+        const activo = document.getElementById(mapa[cat]);
+        if (activo) { activo.classList.add('border-rgbPurple','bg-rgbPurple/20','text-rgbPurple'); activo.classList.remove('border-gray-700','text-gray-400'); }
+        renderizarPaginaArticulos();
+    }
+    function renderizarPaginaArticulos() {
+        const c = document.getElementById('contenedor-pagina-articulos');
+        if (!c) return;
+        let arts = publicacionesDinamicas
+            .filter(p => p.categoria !== 'Tutorial de Inmersión')
+            .map(formatearPublicacion);
+        if (filtroArticulosActual !== 'todos') arts = arts.filter(a => a.categoria === filtroArticulosActual);
+        c.innerHTML = arts.length
+            ? arts.map(a => renderizarTarjeta(a, {mostrarLikes:true})).join('')
+            : '<p class="text-gray-500 text-sm col-span-full text-center py-12">No hay artículos en esta categoría todavía.</p>';
+        lucide.createIcons();
+    }
+
+    // ============================================================
+    // PÁGINA: GUÍAS
+    // ============================================================
+    let ordenGuiasActual = 'valoracion';
+    function ordenarGuias(orden) {
+        ordenGuiasActual = orden;
+        document.getElementById('orden-valoracion').className = orden === 'valoracion'
+            ? 'px-4 py-1.5 rounded-full text-xs font-bold border border-yellow-500/60 bg-yellow-500/10 text-yellow-400'
+            : 'px-4 py-1.5 rounded-full text-xs font-bold border border-gray-700 text-gray-400 hover:border-gray-500 transition-colors';
+        document.getElementById('orden-recientes').className = orden === 'recientes'
+            ? 'px-4 py-1.5 rounded-full text-xs font-bold border border-rgbNeon/60 bg-rgbNeon/10 text-rgbNeon'
+            : 'px-4 py-1.5 rounded-full text-xs font-bold border border-gray-700 text-gray-400 hover:border-gray-500 transition-colors';
+        renderizarPaginaGuias();
+    }
+    function renderizarPaginaGuias() {
+        const c = document.getElementById('contenedor-pagina-guias');
+        if (!c) return;
+        let guias = publicacionesDinamicas
+            .filter(p => p.categoria === 'Tutorial de Inmersión')
+            .map(formatearPublicacion);
+        if (ordenGuiasActual === 'valoracion') guias.sort((a,b) => b.promedio - a.promedio || b.totalVotos - a.totalVotos);
+        else guias.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+        c.innerHTML = guias.length
+            ? guias.map(a => renderizarTarjeta(a)).join('')
+            : '<p class="text-gray-500 text-sm col-span-full text-center py-12">No hay guías publicadas todavía.</p>';
+        lucide.createIcons();
+    }
+
+    // ============================================================
+    // RENDERIZAR PÁGINA ACTUAL (según ruta SPA)
+    // ============================================================
+    function renderizarPaginaActual() {
+        const ruta = location.hash.replace('#','') || 'inicio';
+        if (ruta === 'articulos') renderizarPaginaArticulos();
+        else if (ruta === 'guias') renderizarPaginaGuias();
+    }
+
+    // ============================================================
+    // NAVEGACIÓN SPA CON HASH
+    // ============================================================
+    function navegarA(pagina) {
+        // Cambia el hash (actualiza URL sin recargar)
+        location.hash = pagina === 'inicio' ? '' : pagina;
+        mostrarPagina(pagina);
+    }
+
+    function mostrarPagina(pagina) {
+        // Oculta todas las páginas
+        ['inicio','articulos','guias'].forEach(p => {
+            const el = document.getElementById(`pagina-${p}`);
+            if (el) { el.classList.add('hidden'); el.classList.remove('page'); }
+        });
+        // Muestra la correcta
+        const activa = document.getElementById(`pagina-${pagina}`);
+        if (activa) { activa.classList.remove('hidden'); activa.classList.add('page'); }
+        // Actualiza estilos del nav
+        document.getElementById('nav-inicio')?.classList.toggle('text-rgbCyan', pagina==='inicio');
+        document.getElementById('nav-articulos')?.classList.toggle('text-rgbPurple', pagina==='articulos');
+        document.getElementById('nav-guias')?.classList.toggle('text-rgbNeon', pagina==='guias');
+        // Scroll al tope
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Renderiza contenido de la página
+        if (pagina === 'articulos') renderizarPaginaArticulos();
+        if (pagina === 'guias') renderizarPaginaGuias();
+    }
+
+    // Escucha cambios de hash (botón Atrás/Adelante del navegador)
+    window.addEventListener('hashchange', () => {
+        const ruta = location.hash.replace('#','') || 'inicio';
+        mostrarPagina(ruta);
+    });
+
+    // ============================================================
+    // MODAL DE LECTURA
+    // ============================================================
+    let idPublicacionActualEnModal = null;
+    let tipoModalActual = null; // 'articulo' | 'guia'
+
+    function abrirModal(id) {
+        let articulo, terminoGiscus;
+        idPublicacionActualEnModal = null;
+        tipoModalActual = null;
+
+        if (typeof id === 'string' && id.startsWith('db-')) {
+            const idReal = parseInt(id.replace('db-',''), 10);
+            const post = publicacionesDinamicas.find(p => p.id === idReal);
+            if (!post) return;
+            const esGuia = post.categoria === 'Tutorial de Inmersión';
+            articulo = {
+                categoria: post.categoria,
+                titulo: post.titulo,
+                fecha: new Date(post.creado_en).toLocaleDateString('es-PA',{year:'numeric',month:'long'}),
+                contenidoCompleto: (post.contenido||'') + construirHTMLAdjuntos(post.archivos_adjuntos)
+            };
+            terminoGiscus = `comunidad-post-${idReal}`;
+            idPublicacionActualEnModal = idReal;
+            tipoModalActual = esGuia ? 'guia' : 'articulo';
+
+            // Muestra/oculta controles según tipo
+            const btnLike = document.getElementById('modal-btn-like');
+            const estrellaBloque = document.getElementById('modal-estrellas-bloque');
+            if (esGuia) {
+                btnLike.classList.add('hidden');
+                renderizarEstrellasModal(idReal);
+            } else {
+                estrellaBloque.classList.add('hidden');
                 btnLike.classList.remove('hidden');
                 document.getElementById('modal-likes-count').textContent = post.reacciones?.length || 0;
                 btnLike.classList.toggle('text-rgbPurple', yaDioLikeA(idReal));
+            }
+        }
+
+        if (!articulo) return;
+        document.getElementById('modal-categoria').innerText = articulo.categoria;
+        document.getElementById('modal-titulo').innerText = articulo.titulo;
+        document.getElementById('modal-fecha').innerText = `Publicado: ${articulo.fecha} | IAVID`;
+        document.getElementById('modal-contenido').innerHTML = articulo.contenidoCompleto;
+
+        // Giscus
+        const gc = document.getElementById('giscus-container');
+        gc.innerHTML = '';
+        if (terminoGiscus) {
+            const s = document.createElement('script');
+            s.src = 'https://giscus.app/client.js';
+            s.setAttribute('data-repo','dw582924-ui/Iavid');
+            s.setAttribute('data-repo-id','R_kgDOS-4mpA');
+            s.setAttribute('data-category','Announcements');
+            s.setAttribute('data-category-id','DIC_kwDOS-4mpM4C_jPz');
+            s.setAttribute('data-mapping','specific');
+            s.setAttribute('data-term', terminoGiscus);
+            s.setAttribute('data-reactions-enabled','1');
+            s.setAttribute('data-emit-metadata','0');
+            s.setAttribute('data-input-position','top');
+            s.setAttribute('data-theme','dark_dimmed');
+            s.setAttribute('data-lang','es');
+            s.setAttribute('crossorigin','anonymous');
+            s.async = true;
+            gc.appendChild(s);
+        }
+
+        lucide.createIcons();
+        const modal = document.getElementById('articulo-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.classList.add('overflow-hidden');
+    }
+
+    function cerrarModal() {
+        const modal = document.getElementById('articulo-modal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.classList.remove('overflow-hidden');
+        document.getElementById('giscus-container').innerHTML = '';
+        document.getElementById('modal-estrellas-bloque').classList.add('hidden');
+        document.getElementById('modal-btn-like').classList.add('hidden');
+        idPublicacionActualEnModal = null;
+        tipoModalActual = null;
+    }
+
+    // ============================================================
+    // MODALES: AUTH / PUBLICAR / STAFF
+    // ============================================================
+    let modoAuthEsRegistro = false;
+    function abrirModalAuth() { const m=document.getElementById('auth-modal'); m.classList.remove('hidden'); m.classList.add('flex'); lucide.createIcons(); }
+    function cerrarModalAuth() { const m=document.getElementById('auth-modal'); m.classList.add('hidden'); m.classList.remove('flex'); }
+    function alternarModoAuth() {
+        modoAuthEsRegistro = !modoAuthEsRegistro;
+        document.getElementById('auth-campo-nombre').classList.toggle('hidden',!modoAuthEsRegistro);
+        document.getElementById('auth-modal-titulo').textContent = modoAuthEsRegistro?'Crear cuenta':'Ingresar';
+        document.getElementById('auth-btn').textContent = modoAuthEsRegistro?'Registrarme':'Ingresar';
+        document.getElementById('auth-toggle-texto').textContent = modoAuthEsRegistro?'¿Ya tienes cuenta?':'¿No tienes cuenta?';
+        document.getElementById('auth-toggle-btn').textContent = modoAuthEsRegistro?'Inicia sesión':'Regístrate';
+    }
+    async function manejarEnvioAuth(event) {
+        event.preventDefault();
+        const form = event.target;
+        const btn = document.getElementById('auth-btn');
+        const estado = document.getElementById('auth-estado');
+        btn.disabled = true; estado.classList.add('hidden');
+        try {
+            if (modoAuthEsRegistro) {
+                await registrarUsuario(form.email.value.trim(), form.password.value, form.nombre.value.trim() || form.email.value.split('@')[0]);
+                estado.textContent='✅ Cuenta creada. Revisa tu correo si el proyecto requiere confirmación.';
+                estado.className='text-xs text-rgbNeon'; estado.classList.remove('hidden');
             } else {
-                articulo = baseDeDatosArticulos.find(a => a.id === id);
-                if (!articulo) return;
-                terminoGiscus = articulo.giscusTermino;
-                document.getElementById('modal-btn-like').classList.add('hidden');
+                await iniciarSesion(form.email.value.trim(), form.password.value);
+                form.reset(); cerrarModalAuth(); await recargarListaPublicaciones();
             }
+        } catch(e) { estado.textContent=`❌ ${e.message}`; estado.className='text-xs text-red-400'; estado.classList.remove('hidden'); }
+        finally { btn.disabled=false; }
+    }
 
-            document.getElementById('modal-categoria').innerText = articulo.categoria;
-            document.getElementById('modal-titulo').innerText = articulo.titulo;
-            document.getElementById('modal-fecha').innerText = `Publicado: ${articulo.fecha} | IAVID Docu`;
-            document.getElementById('modal-contenido').innerHTML = articulo.contenidoCompleto;
+    function abrirModalPublicar() { const m=document.getElementById('publicar-modal'); m.classList.remove('hidden'); m.classList.add('flex'); lucide.createIcons(); }
+    function cerrarModalPublicar() { const m=document.getElementById('publicar-modal'); m.classList.add('hidden'); m.classList.remove('flex'); }
 
-            // Limpiar Giscus anterior e inyectar el del artículo actual
-            const giscusContainer = document.getElementById('giscus-container');
-            giscusContainer.innerHTML = '';
+    function abrirModalStaff() { const m=document.getElementById('staff-modal'); m.classList.remove('hidden'); m.classList.add('flex'); cambiarPestanaStaff('posts'); lucide.createIcons(); }
+    function cerrarModalStaff() { const m=document.getElementById('staff-modal'); m.classList.add('hidden'); m.classList.remove('flex'); }
+    function cambiarPestanaStaff(p) {
+        const activo='flex-1 py-3 font-semibold text-rgbCyan border-b-2 border-rgbCyan';
+        const inactivo='flex-1 py-3 font-semibold text-gray-500 border-b-2 border-transparent';
+        document.getElementById('staff-tab-posts').className = p==='posts'?activo:inactivo;
+        document.getElementById('staff-tab-usuarios').className = p==='usuarios'?activo:inactivo;
+        document.getElementById('staff-lista-posts').classList.toggle('hidden', p!=='posts');
+        document.getElementById('staff-lista-usuarios').classList.toggle('hidden', p!=='usuarios');
+        if (p==='posts') renderizarPanelStaffPosts();
+        else renderizarPanelStaffUsuarios();
+    }
 
-            const script = document.createElement('script');
-            script.src = 'https://giscus.app/client.js';
-            script.setAttribute('data-repo', 'dw582924-ui/Iavid');           // ← reemplazar
-            script.setAttribute('data-repo-id', 'R_kgDOS-4mpA');                // ← reemplazar
-            script.setAttribute('data-category', 'Announcements');
-            script.setAttribute('data-category-id', 'DIC_kwDOS-4mpM4C_jPz');        // ← reemplazar
-            script.setAttribute('data-mapping', 'specific');
-            script.setAttribute('data-term', terminoGiscus);         // término único por artículo
-            script.setAttribute('data-reactions-enabled', '1');
-            script.setAttribute('data-emit-metadata', '0');
-            script.setAttribute('data-input-position', 'top');
-            script.setAttribute('data-theme', 'dark_dimmed');
-            script.setAttribute('data-lang', 'es');
-            script.setAttribute('crossorigin', 'anonymous');
-            script.async = true;
-            giscusContainer.appendChild(script);
+    // ============================================================
+    // FEEDBACK FORMSPREE
+    // ============================================================
+    async function manejarFormspree(event) {
+        event.preventDefault();
+        const btn=document.getElementById('feedback-btn');
+        const estado=document.getElementById('feedback-estado');
+        btn.disabled=true; btn.textContent='Enviando...'; estado.classList.add('hidden');
+        try {
+            const res = await fetch(event.target.action,{ method:'POST', body:new FormData(event.target), headers:{'Accept':'application/json'} });
+            if (res.ok) { estado.textContent='✅ ¡Gracias! Tu opinión fue enviada.'; estado.className='text-xs text-rgbNeon'; event.target.reset(); }
+            else throw new Error('Error del servidor');
+        } catch { estado.textContent='❌ Error al enviar. Verifica tu conexión.'; estado.className='text-xs text-red-400'; }
+        estado.classList.remove('hidden'); btn.disabled=false; btn.textContent='Enviar Opinión';
+    }
 
-            lucide.createIcons();
-
-            const modal = document.getElementById('articulo-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            document.body.classList.add('overflow-hidden');
-        }
-
-        function cerrarModal() {
-            const modal = document.getElementById('articulo-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            document.body.classList.remove('overflow-hidden');
-            // Limpiar Giscus al cerrar para evitar duplicados
-            document.getElementById('giscus-container').innerHTML = '';
-        }
-
-        // ============================================================
-        // FEEDBACK VÍA FORMSPREE
-        // Manejo visual del envío (Formspree hace el resto)
-        // ============================================================
-        async function manejarFormspree(event) {
-            event.preventDefault();
-            const btn    = document.getElementById('feedback-btn');
-            const estado = document.getElementById('feedback-estado');
-            const form   = event.target;
-
-            btn.disabled = true;
-            btn.textContent = 'Enviando...';
-            estado.classList.add('hidden');
-
-            try {
-                const res = await fetch(form.action, {
-                    method: 'POST',
-                    body: new FormData(form),
-                    headers: { 'Accept': 'application/json' }
-                });
-
-                if (res.ok) {
-                    estado.textContent = '✅ ¡Gracias! Tu opinión fue enviada correctamente.';
-                    estado.className = 'text-xs text-rgbNeon';
-                    form.reset();
-                } else {
-                    throw new Error('Error del servidor');
-                }
-            } catch {
-                estado.textContent = '❌ Error al enviar. Verifica tu conexión e intenta de nuevo.';
-                estado.className = 'text-xs text-red-400';
-            }
-
-            estado.classList.remove('hidden');
-            btn.disabled = false;
-            btn.textContent = 'Enviar Opinión';
-        }
-
-        // ============================================================
-        // MODAL: LOGIN / REGISTRO
-        // ============================================================
-        let modoAuthEsRegistro = false;
-
-        function abrirModalAuth() {
-            const modal = document.getElementById('auth-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            lucide.createIcons();
-        }
-
-        function cerrarModalAuth() {
-            const modal = document.getElementById('auth-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        function alternarModoAuth() {
-            modoAuthEsRegistro = !modoAuthEsRegistro;
-            document.getElementById('auth-campo-nombre').classList.toggle('hidden', !modoAuthEsRegistro);
-            document.getElementById('auth-modal-titulo').textContent = modoAuthEsRegistro ? 'Crear cuenta' : 'Ingresar';
-            document.getElementById('auth-btn').textContent = modoAuthEsRegistro ? 'Registrarme' : 'Ingresar';
-            document.getElementById('auth-toggle-texto').textContent = modoAuthEsRegistro ? '¿Ya tienes cuenta?' : '¿No tienes cuenta?';
-            document.getElementById('auth-toggle-btn').textContent = modoAuthEsRegistro ? 'Inicia sesión' : 'Regístrate';
-        }
-
-        async function manejarEnvioAuth(event) {
-            event.preventDefault();
-            const form = event.target;
-            const btn = document.getElementById('auth-btn');
-            const estadoEl = document.getElementById('auth-estado');
-            const email = form.email.value.trim();
-            const password = form.password.value;
-            const nombre = form.nombre.value.trim();
-
-            btn.disabled = true;
-            estadoEl.classList.add('hidden');
-
-            try {
-                if (modoAuthEsRegistro) {
-                    await registrarUsuario(email, password, nombre || email.split('@')[0]);
-                    estadoEl.textContent = '✅ Cuenta creada. Si tu proyecto requiere confirmación por correo, revísalo antes de ingresar.';
-                    estadoEl.className = 'text-xs text-rgbNeon';
-                    estadoEl.classList.remove('hidden');
-                } else {
-                    await iniciarSesion(email, password);
-                    form.reset();
-                    cerrarModalAuth();
-                    await recargarListaPublicaciones();
-                }
-            } catch (error) {
-                estadoEl.textContent = `❌ ${error.message}`;
-                estadoEl.className = 'text-xs text-red-400';
-                estadoEl.classList.remove('hidden');
-            } finally {
-                btn.disabled = false;
-            }
-        }
-
-        // ============================================================
-        // MODAL: NUEVA PUBLICACIÓN
-        // ============================================================
-        function abrirModalPublicar() {
-            const modal = document.getElementById('publicar-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            lucide.createIcons();
-        }
-
-        function cerrarModalPublicar() {
-            const modal = document.getElementById('publicar-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        // ============================================================
-        // MODAL: PANEL STAFF
-        // ============================================================
-        function abrirModalStaff() {
-            const modal = document.getElementById('staff-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            cambiarPestanaStaff('posts');
-            lucide.createIcons();
-        }
-
-        function cerrarModalStaff() {
-            const modal = document.getElementById('staff-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        function cambiarPestanaStaff(pestana) {
-            const tabPosts = document.getElementById('staff-tab-posts');
-            const tabUsuarios = document.getElementById('staff-tab-usuarios');
-            const listaPosts = document.getElementById('staff-lista-posts');
-            const listaUsuarios = document.getElementById('staff-lista-usuarios');
-
-            const activo = 'text-rgbCyan border-b-2 border-rgbCyan';
-            const inactivo = 'text-gray-500 border-b-2 border-transparent';
-
-            if (pestana === 'posts') {
-                tabPosts.className = `flex-1 py-3 font-semibold ${activo}`;
-                tabUsuarios.className = `flex-1 py-3 font-semibold ${inactivo}`;
-                listaPosts.classList.remove('hidden');
-                listaUsuarios.classList.add('hidden');
-                renderizarPanelStaffPosts();
-            } else {
-                tabUsuarios.className = `flex-1 py-3 font-semibold ${activo}`;
-                tabPosts.className = `flex-1 py-3 font-semibold ${inactivo}`;
-                listaUsuarios.classList.remove('hidden');
-                listaPosts.classList.add('hidden');
-                renderizarPanelStaffUsuarios();
-            }
-        }
-
-        // ============================================================
-        // INICIO
-        // ============================================================
-        window.onload = async function () {
-            renderizarArticulos();
-            lucide.createIcons();
-            await recargarListaPublicaciones();
-            await cargarHeroMedia();
-        };
+    // ============================================================
+    // INICIO
+    // ============================================================
+    window.onload = async function() {
+        lucide.createIcons();
+        await cargarPerfilActual();
+        await recargarListaPublicaciones();
+        await cargarHeroMedia();
+        // Determina página inicial según hash
+        const ruta = location.hash.replace('#','') || 'inicio';
+        mostrarPagina(ruta);
+    };
     </script>
+
+    <!--
+    ================================================================
+    SQL PARA LA TABLA DE VALORACIONES — ejecutar en Supabase SQL Editor
+    ================================================================
+
+    -- Tabla de valoraciones de guías (1 voto por persona por guía)
+    CREATE TABLE IF NOT EXISTS valoraciones_guias (
+        id            BIGSERIAL PRIMARY KEY,
+        publicacion_id BIGINT NOT NULL REFERENCES publicaciones(id) ON DELETE CASCADE,
+        identificador  TEXT NOT NULL,
+        puntuacion     SMALLINT NOT NULL CHECK (puntuacion BETWEEN 1 AND 5),
+        creado_en      TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(publicacion_id, identificador)
+    );
+
+    -- Permite lectura pública
+    ALTER TABLE valoraciones_guias ENABLE ROW LEVEL SECURITY;
+
+    CREATE POLICY "valoraciones_leer" ON valoraciones_guias
+        FOR SELECT USING (true);
+
+    CREATE POLICY "valoraciones_insertar" ON valoraciones_guias
+        FOR INSERT WITH CHECK (true);
+
+    CREATE POLICY "valoraciones_actualizar" ON valoraciones_guias
+        FOR UPDATE USING (true);
+
+    ================================================================
+    -->
 </body>
 </html>
