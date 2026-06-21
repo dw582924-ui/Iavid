@@ -117,7 +117,8 @@
                     </div>
                     <span class="text-xs text-gray-500 font-mono">Simulacion_NPC_Reactivo.mp4</span>
                 </div>
-                <div class="h-64 sm:h-80 bg-gradient-to-b from-slate-950 to-gamingDark flex flex-col items-center justify-center relative p-6 text-center">
+                <div id="hero-media-contenedor" class="h-64 sm:h-80 bg-gradient-to-b from-slate-950 to-gamingDark flex flex-col items-center justify-center relative p-6 text-center overflow-hidden">
+                    <!-- Placeholder por defecto (se reemplaza por JS si hay media cargada) -->
                     <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:16px_16px]"></div>
                     <div class="w-16 h-16 rounded-full border-4 border-t-rgbCyan border-r-rgbPurple border-b-transparent border-l-transparent animate-spin flex items-center justify-center mb-4">
                         <i data-lucide="cpu" class="w-6 h-6 text-rgbPurple"></i>
@@ -125,6 +126,11 @@
                     <p class="text-sm font-mono text-rgbCyan tracking-widest uppercase animate-pulse">Árboles de Comportamiento Activos</p>
                     <p class="text-xs text-gray-500 mt-2 max-w-xs">[Vídeo de muestra provisional: Análisis del sistema sensorial y de caza adaptativa de entornos inmersivos]</p>
                 </div>
+                <!-- Botón de gestión, solo visible para staff -->
+                <button data-rol-visible="staff" onclick="abrirModalHeroMedia()"
+                    class="hidden absolute top-12 right-3 z-10 bg-black/60 hover:bg-black/80 border border-rgbCyan/40 text-rgbCyan text-xs px-3 py-1.5 rounded-md font-semibold backdrop-blur-sm transition-all">
+                    <i data-lucide="image-plus" class="w-3.5 h-3.5 inline-block mr-1"></i>Editar media
+                </button>
             </div>
         </div>
     </header>
@@ -260,6 +266,44 @@
     </div>
 
     <!-- ========================================== -->
+    <!-- MODAL: MEDIA DEL HERO (video/fotos staff)  -->
+    <!-- ========================================== -->
+    <div id="hero-media-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-gamingGray border border-gray-800 max-w-md w-full rounded-2xl overflow-hidden shadow-2xl relative">
+            <div class="p-6 border-b border-gray-800/60 flex justify-between items-center bg-black/20">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i data-lucide="image-plus" class="w-5 h-5 text-rgbCyan"></i>
+                    Media de la Portada
+                </h3>
+                <button onclick="cerrarModalHeroMedia()" class="text-gray-400 hover:text-white bg-gray-800/50 p-2 rounded-lg transition-colors">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-5">
+                <p class="text-xs text-gray-500">Si subes un video, este se muestra solo. Si solo subes fotos, rotan en carrusel. Subir uno nuevo reemplaza lo anterior de ese tipo.</p>
+
+                <div class="space-y-2">
+                    <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold">Video (MP4/WEBM, máx. 30MB)</label>
+                    <input type="file" id="hero-input-video" accept=".mp4,.webm"
+                        class="w-full text-xs text-gray-400 bg-gamingDark border border-gray-700 rounded-lg p-2.5 file:bg-gamingGray file:border-0 file:text-rgbCyan file:mr-3 file:px-3 file:py-1.5 file:rounded-md file:text-xs">
+                    <button onclick="subirHeroVideo()" class="w-full bg-gradient-to-r from-rgbNeon to-rgbCyan text-gamingDark py-2 rounded-lg text-xs font-bold uppercase">Subir / Reemplazar Video</button>
+                </div>
+
+                <div class="border-t border-gray-800 pt-4 space-y-2">
+                    <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold">Fotos rotativas (JPG/PNG/WEBP, máx. 8MB c/u)</label>
+                    <input type="file" id="hero-input-fotos" accept=".jpg,.jpeg,.png,.webp" multiple
+                        class="w-full text-xs text-gray-400 bg-gamingDark border border-gray-700 rounded-lg p-2.5 file:bg-gamingGray file:border-0 file:text-rgbCyan file:mr-3 file:px-3 file:py-1.5 file:rounded-md file:text-xs">
+                    <button onclick="subirHeroFotos()" class="w-full bg-gamingDark border border-rgbPurple/50 text-rgbPurple py-2 rounded-lg text-xs font-bold uppercase">Subir / Reemplazar Fotos</button>
+                </div>
+
+                <button onclick="quitarHeroMedia()" class="w-full text-xs text-red-400 hover:text-red-300 underline pt-1">Quitar toda la media (volver al placeholder)</button>
+
+                <p id="hero-media-estado" class="text-xs hidden"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
     <!-- MODAL DE ARTÍCULO + GISCUS                 -->
     <!-- ========================================== -->
     <div id="articulo-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
@@ -276,19 +320,22 @@
                 </button>
             </div>
 
-            <!-- Contenido del artículo -->
-            <div id="modal-contenido" class="p-6 overflow-y-auto space-y-4 text-gray-300 text-sm leading-relaxed font-normal"></div>
+            <!-- Cuerpo con scroll único: artículo + comentarios -->
+            <div class="overflow-y-auto flex-1 min-h-0">
+                <!-- Contenido del artículo -->
+                <div id="modal-contenido" class="p-6 space-y-4 text-gray-300 text-sm leading-relaxed font-normal"></div>
 
-            <!-- ============================================ -->
-            <!-- SECCIÓN DE COMENTARIOS GISCUS POR ARTÍCULO  -->
-            <!-- ============================================ -->
-            <div class="px-6 pb-4 border-t border-gray-800/60 pt-4">
-                <p class="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-3 flex items-center gap-2">
-                    <i data-lucide="message-circle" class="w-4 h-4 text-rgbCyan"></i>
-                    Comentarios de la comunidad
-                </p>
-                <!-- Contenedor donde se inyecta Giscus dinámicamente -->
-                <div id="giscus-container"></div>
+                <!-- ============================================ -->
+                <!-- SECCIÓN DE COMENTARIOS GISCUS POR ARTÍCULO  -->
+                <!-- ============================================ -->
+                <div class="px-6 pb-4 border-t border-gray-800/60 pt-4">
+                    <p class="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-3 flex items-center gap-2">
+                        <i data-lucide="message-circle" class="w-4 h-4 text-rgbCyan"></i>
+                        Comentarios de la comunidad
+                    </p>
+                    <!-- Contenedor donde se inyecta Giscus dinámicamente -->
+                    <div id="giscus-container"></div>
+                </div>
             </div>
 
             <!-- Cierre -->
@@ -935,6 +982,224 @@ async function prepararEdicionPost(id) {
     }
 }
 
+// ============================================================
+// HERO MEDIA — video o fotos rotativas en la caja del hero
+// ============================================================
+const CARPETA_HERO = 'hero';
+let intervaloCarruselHero = null;
+
+// ------------------------------------------------------------
+// Cargar y renderizar la media actual del hero (al iniciar)
+// ------------------------------------------------------------
+async function cargarHeroMedia() {
+    const { data, error } = await supabaseClient
+        .from('hero_media')
+        .select('tipo, video_ruta, fotos_rutas')
+        .eq('id', 1)
+        .single();
+
+    if (error) {
+        console.error('Error cargando hero_media:', error);
+        return;
+    }
+    renderizarHeroMedia(data);
+}
+
+function renderizarHeroMedia(data) {
+    const contenedor = document.getElementById('hero-media-contenedor');
+    if (!contenedor) return;
+
+    // Limpia cualquier carrusel anterior corriendo
+    if (intervaloCarruselHero) {
+        clearInterval(intervaloCarruselHero);
+        intervaloCarruselHero = null;
+    }
+
+    // Sin media: deja el placeholder que ya está en el HTML
+    if (!data || data.tipo === 'ninguno') return;
+
+    if (data.tipo === 'video' && data.video_ruta) {
+        const url = obtenerUrlPublica(data.video_ruta);
+        contenedor.innerHTML = `<video src="${url}" autoplay loop muted playsinline class="w-full h-full object-cover"></video>`;
+        return;
+    }
+
+    if (data.tipo === 'fotos' && data.fotos_rutas && data.fotos_rutas.length > 0) {
+        const urls = data.fotos_rutas.map(r => obtenerUrlPublica(r));
+        contenedor.innerHTML = `<img id="hero-carrusel-img" src="${urls[0]}" class="w-full h-full object-cover transition-opacity duration-500">`;
+        if (urls.length > 1) {
+            let indice = 0;
+            intervaloCarruselHero = setInterval(() => {
+                indice = (indice + 1) % urls.length;
+                const img = document.getElementById('hero-carrusel-img');
+                if (img) {
+                    img.style.opacity = '0';
+                    setTimeout(() => {
+                        img.src = urls[indice];
+                        img.style.opacity = '1';
+                    }, 300);
+                }
+            }, 4000);
+        }
+        return;
+    }
+}
+
+// ------------------------------------------------------------
+// Modal de gestión (staff)
+// ------------------------------------------------------------
+function abrirModalHeroMedia() {
+    const modal = document.getElementById('hero-media-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    lucide.createIcons();
+}
+
+function cerrarModalHeroMedia() {
+    const modal = document.getElementById('hero-media-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+function mostrarEstadoHeroMedia(mensaje, tipo) {
+    const el = document.getElementById('hero-media-estado');
+    if (!el) return;
+    el.textContent = mensaje;
+    el.className = tipo === 'exito' ? 'text-xs text-rgbNeon' : 'text-xs text-red-400';
+    el.classList.remove('hidden');
+}
+
+// ------------------------------------------------------------
+// Subir / reemplazar el video del hero
+// ------------------------------------------------------------
+async function subirHeroVideo() {
+    if (!esStaff()) return;
+    const input = document.getElementById('hero-input-video');
+    const file = input.files[0];
+    if (!file) {
+        mostrarEstadoHeroMedia('Selecciona un archivo de video primero.', 'error');
+        return;
+    }
+    if (!['video/mp4', 'video/webm'].includes(file.type)) {
+        mostrarEstadoHeroMedia('Solo se permiten archivos MP4 o WEBM.', 'error');
+        return;
+    }
+    if (file.size > 30 * 1024 * 1024) {
+        mostrarEstadoHeroMedia('El video no debe superar 30MB.', 'error');
+        return;
+    }
+
+    try {
+        mostrarEstadoHeroMedia('Subiendo video...', 'exito');
+
+        // Borra el video anterior del hero si existía (libera espacio)
+        const { data: actual } = await supabaseClient.from('hero_media').select('video_ruta').eq('id', 1).single();
+        if (actual?.video_ruta) {
+            await supabaseClient.storage.from(NOMBRE_BUCKET).remove([actual.video_ruta]);
+        }
+
+        const nombreLimpio = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_');
+        const ruta = `${CARPETA_HERO}/${Date.now()}_${nombreLimpio}`;
+
+        const { error: errorSubida } = await supabaseClient.storage.from(NOMBRE_BUCKET).upload(ruta, file, { upsert: false });
+        if (errorSubida) throw errorSubida;
+
+        const { error: errorUpdate } = await supabaseClient
+            .from('hero_media')
+            .update({ tipo: 'video', video_ruta: ruta, fotos_rutas: [], actualizado_en: new Date().toISOString() })
+            .eq('id', 1);
+        if (errorUpdate) throw errorUpdate;
+
+        mostrarEstadoHeroMedia('✅ Video actualizado.', 'exito');
+        await cargarHeroMedia();
+        input.value = '';
+    } catch (error) {
+        mostrarEstadoHeroMedia(`❌ ${error.message}`, 'error');
+    }
+}
+
+// ------------------------------------------------------------
+// Subir / reemplazar las fotos rotativas del hero
+// ------------------------------------------------------------
+async function subirHeroFotos() {
+    if (!esStaff()) return;
+    const input = document.getElementById('hero-input-fotos');
+    const files = Array.from(input.files);
+    if (files.length === 0) {
+        mostrarEstadoHeroMedia('Selecciona al menos una foto.', 'error');
+        return;
+    }
+    for (const f of files) {
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(f.type)) {
+            mostrarEstadoHeroMedia(`"${f.name}" no es JPG, PNG o WEBP.`, 'error');
+            return;
+        }
+        if (f.size > 8 * 1024 * 1024) {
+            mostrarEstadoHeroMedia(`"${f.name}" supera los 8MB.`, 'error');
+            return;
+        }
+    }
+
+    try {
+        mostrarEstadoHeroMedia('Subiendo fotos...', 'exito');
+
+        // Borra fotos anteriores del hero
+        const { data: actual } = await supabaseClient.from('hero_media').select('fotos_rutas').eq('id', 1).single();
+        if (actual?.fotos_rutas?.length > 0) {
+            await supabaseClient.storage.from(NOMBRE_BUCKET).remove(actual.fotos_rutas);
+        }
+
+        const rutasNuevas = [];
+        for (const file of files) {
+            const nombreLimpio = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_');
+            const ruta = `${CARPETA_HERO}/${Date.now()}_${nombreLimpio}`;
+            const { error: errorSubida } = await supabaseClient.storage.from(NOMBRE_BUCKET).upload(ruta, file, { upsert: false });
+            if (errorSubida) throw errorSubida;
+            rutasNuevas.push(ruta);
+        }
+
+        const { error: errorUpdate } = await supabaseClient
+            .from('hero_media')
+            .update({ tipo: 'fotos', video_ruta: null, fotos_rutas: rutasNuevas, actualizado_en: new Date().toISOString() })
+            .eq('id', 1);
+        if (errorUpdate) throw errorUpdate;
+
+        mostrarEstadoHeroMedia('✅ Fotos actualizadas.', 'exito');
+        await cargarHeroMedia();
+        input.value = '';
+    } catch (error) {
+        mostrarEstadoHeroMedia(`❌ ${error.message}`, 'error');
+    }
+}
+
+// ------------------------------------------------------------
+// Quitar toda la media (vuelve al placeholder original)
+// ------------------------------------------------------------
+async function quitarHeroMedia() {
+    if (!esStaff()) return;
+    if (!confirm('¿Quitar el video/fotos de la portada y volver al placeholder?')) return;
+
+    try {
+        const { data: actual } = await supabaseClient.from('hero_media').select('video_ruta, fotos_rutas').eq('id', 1).single();
+        const rutasABorrar = [];
+        if (actual?.video_ruta) rutasABorrar.push(actual.video_ruta);
+        if (actual?.fotos_rutas?.length > 0) rutasABorrar.push(...actual.fotos_rutas);
+        if (rutasABorrar.length > 0) {
+            await supabaseClient.storage.from(NOMBRE_BUCKET).remove(rutasABorrar);
+        }
+
+        await supabaseClient
+            .from('hero_media')
+            .update({ tipo: 'ninguno', video_ruta: null, fotos_rutas: [], actualizado_en: new Date().toISOString() })
+            .eq('id', 1);
+
+        mostrarEstadoHeroMedia('✅ Media eliminada.', 'exito');
+        location.reload(); // recarga simple para restaurar el placeholder original del HTML
+    } catch (error) {
+        mostrarEstadoHeroMedia(`❌ ${error.message}`, 'error');
+    }
+}
+
     </script>
 
     <!-- ========================================== -->
@@ -944,65 +1209,12 @@ async function prepararEdicionPost(id) {
         // ============================================================
         // BASE DE ARTÍCULOS
         // ============================================================
-        const baseDeDatosArticulos = [
-            {
-                id: 1,
-                giscusTermino: "articulo-alien-isolation",
-                categoria: "Análisis de IA",
-                bordeColor: "hover:border-rgbPurple/50",
-                titulo: "La tensión acústica y el cazador en Alien: Isolation",
-                fecha: "Junio 2026",
-                descripcionCorta: "Estudio profundo sobre cómo el Xenomorfo utiliza un sistema dual de árboles de comportamiento para acorralar al jugador sin romper la ilusión de vida.",
-                contenidoCompleto: `
-                    <p>El Xenomorfo de <strong>Alien: Isolation</strong> es considerado uno de los hitos más importantes en la programación de IA para videojuegos enfocada en la inmersión de terror.</p>
-                    <p>A nivel de arquitectura interna, el juego no utiliza un único script rígido, sino un sistema integrado por <strong>dos árboles de comportamiento</strong> que se comunican continuamente:</p>
-                    <ol class="list-decimal pl-5 space-y-2 my-3">
-                        <li><strong>El Árbol del 'Director' (Macro IA):</strong> Sabe exactamente en qué habitación se encuentra el jugador en todo momento. Sin embargo, no le da esa ubicación exacta al Alien; en su lugar, le da "pistas" o zonas generales de búsqueda para mantener la tensión sin hacer trampa directa.</li>
-                        <li><strong>El Árbol del Alien (Micro IA):</strong> Controla los sensores físicos del enemigo. Reacciona a los ruidos del detector de movimiento, pisadas correr o luces, moviéndose dinámicamente según sus propios estados internos (Caza, Alerta, Evasión).</li>
-                    </ol>
-                    <p class="bg-gray-800 p-3 rounded-lg border-l-4 border-rgbPurple font-mono text-xs my-2">
-                        Si Ruido_Cercano == Verdadero && Estado == 'Caza' -> Transición_Inmediata(Investigar_Punto)
-                    </p>
-                    <p>Esta combinación metodológica evita que el juego se sienta injusto o predecible, logrando una atmósfera inmersiva donde el jugador siente que está siendo acechado por una mente real y reactiva.</p>
-                `
-            },
-            {
-                id: 2,
-                giscusTermino: "articulo-tokens-combate",
-                categoria: "Tutorial de Inmersión",
-                bordeColor: "hover:border-rgbCyan/50",
-                titulo: "Cómo diseñar sistemas de combate dinámicos y coreografiados",
-                fecha: "Junio 2026",
-                descripcionCorta: "Guía paso a paso para estructurar un sistema de 'tokens' de ataque para evitar que múltiples NPCs abrumen al jugador a la vez, inspirado en Sifu.",
-                contenidoCompleto: `
-                    <p>En juegos de acción en tercera persona como <strong>Sifu</strong> o la saga de Batman Arkham, un problema común de usabilidad es la frustración del jugador si cinco enemigos atacan en el mismo milisegundo de forma aleatoria.</p>
-                    <p>Para resolver esto manteniendo la sensación de peligro y fluidez, se recurre a una metodología lógica llamada <strong>Sistema de Tokens de Ataque</strong>:</p>
-                    <ul class="list-disc pl-5 space-y-2 my-3">
-                        <li>Existe un número limitado de "Tokens de Ataque" disponibles al mismo tiempo (por ejemplo, 2 tokens de ataque directo y 1 de ataque a distancia).</li>
-                        <li>Cuando un NPC decide atacar según su árbol de decisiones, primero debe "solicitar un token" al gestor central de la escena.</li>
-                        <li>Si el gestor le otorga el token, el NPC ejecuta su animación de golpe. Si no hay tokens disponibles, el NPC pasa a un estado de flanqueo, rodeando al jugador de forma amenazante pero sin agredirlo.</li>
-                    </ul>
-                    <p>Esto genera una coreografía limpia y justa, permitiendo al usuario reaccionar de manera óptima, incrementando drásticamente la inmersión en la jugabilidad sin sacrificar la dificultad del entorno.</p>
-                `
-            },
-            {
-                id: 3,
-                giscusTermino: "articulo-fsm-vs-bt",
-                categoria: "Lógica e Implementación",
-                bordeColor: "hover:border-rgbNeon/50",
-                titulo: "Máquinas de Estado Finitas vs. Árboles de Comportamiento",
-                fecha: "Mayo 2026",
-                descripcionCorta: "Análisis conceptual de cuándo elegir cada arquitectura para optimizar el rendimiento y la credibilidad pedagógica de tus personajes no jugables.",
-                contenidoCompleto: `
-                    <p>Al programar la lógica interna de un videojuego, elegir la estructura de control adecuada para la IA define tanto el rendimiento técnico como la credibilidad del entorno interactivo.</p>
-                    <ul class="list-disc pl-5 space-y-3 my-3">
-                        <li><strong>Máquinas de Estado Finitas (FSM):</strong> Son ideales para comportamientos simples y lineales. El personaje se encuentra en un estado fijo (ej. Patrullar) y cambia a otro (ej. Perseguir) mediante un disparador directo. Son fáciles de diseñar mediante pruebas de escritorio manuales, pero se vuelven caóticas y difíciles de mantener a gran escala.</li>
-                        <li><strong>Árboles de Comportamiento (Behavior Trees):</strong> Estructuran la lógica de forma jerárquica mediante nodos de selección, secuencias y condiciones. Permiten comportamientos mucho más complejos, modulares y orgánicos, permitiendo que un NPC alterne prioridades de forma fluida según el entorno.</li>
-                    </ul>
-                    <p>Para proyectos académicos, se recomienda iniciar con diagramaciones de FSM para comprender las bases lógicas, escalando hacia Árboles de Comportamiento cuando la inmersión del juego requiera respuestas dinámicas ante múltiples variables simultáneas.</p>
-                `
-            }
-        ];
+        // Vacío intencionalmente: los 3 artículos de ejemplo que
+        // venían predeterminados (Alien Isolation, Tokens de Combate,
+        // FSM vs Behavior Trees) fueron eliminados a petición. Todo
+        // el contenido ahora viene de la comunidad vía Supabase
+        // (ver publicacionesDinamicas más abajo).
+        const baseDeDatosArticulos = [];
 
         // ============================================================
         // PUBLICACIONES DINÁMICAS (desde Supabase)
@@ -1335,6 +1547,7 @@ async function prepararEdicionPost(id) {
             renderizarArticulos();
             lucide.createIcons();
             await recargarListaPublicaciones();
+            await cargarHeroMedia();
         };
     </script>
 </body>
