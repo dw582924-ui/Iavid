@@ -93,16 +93,6 @@
                     <p class="text-gray-400 text-lg max-w-lg">
                         Explora cómo las mecánicas avanzadas de comportamiento de NPCs y sistemas interactivos transforman los mundos virtuales. Aprende las metodologías para lograr una verdadera inmersión jugable.
                     </p>
-                    <div class="flex flex-wrap gap-4 pt-2">
-                        <button onclick="navegarA('articulos')" class="bg-gamingGray border-2 border-rgbPurple px-6 py-3 rounded-lg font-bold hover:shadow-rgb-glow transition-all flex items-center space-x-2 group">
-                            <span>Ver Artículos</span>
-                            <i data-lucide="arrow-right" class="w-4 h-4 text-rgbCyan group-hover:translate-x-1 transition-transform"></i>
-                        </button>
-                        <button onclick="navegarA('guias')" class="bg-gamingGray border-2 border-rgbNeon/50 px-6 py-3 rounded-lg font-bold hover:border-rgbNeon transition-all flex items-center space-x-2 group">
-                            <span>Ver Guías</span>
-                            <i data-lucide="arrow-right" class="w-4 h-4 text-rgbNeon group-hover:translate-x-1 transition-transform"></i>
-                        </button>
-                    </div>
                 </div>
                 <div class="relative group">
                     <div class="absolute -inset-1 bg-gradient-to-r from-rgbPurple via-rgbCyan to-rgbNeon rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
@@ -225,6 +215,14 @@
                     </div>
                 </div>
 
+                <!-- Barra de búsqueda -->
+                <div class="relative max-w-md">
+                    <i data-lucide="search" class="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                    <input type="text" id="busqueda-articulos" oninput="renderizarPaginaArticulos()"
+                        placeholder="Buscar artículos por título o contenido..."
+                        class="w-full bg-gamingGray border border-gray-700 rounded-lg pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:border-rgbPurple transition-colors text-gray-200 placeholder-gray-600">
+                </div>
+
                 <!-- Filtro rápido -->
                 <div class="flex flex-wrap gap-2">
                     <button onclick="filtrarPaginaArticulos('todos')" id="filtro-art-todos" class="filtro-art-btn px-4 py-1.5 rounded-full text-xs font-bold border border-rgbPurple bg-rgbPurple/20 text-rgbPurple">Todos</button>
@@ -256,6 +254,14 @@
                         </h1>
                         <p class="text-gray-400 text-sm mt-1">Tutoriales de inmersión paso a paso con metodologías aplicables</p>
                     </div>
+                </div>
+
+                <!-- Barra de búsqueda -->
+                <div class="relative max-w-md">
+                    <i data-lucide="search" class="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                    <input type="text" id="busqueda-guias" oninput="renderizarPaginaGuias()"
+                        placeholder="Buscar guías por título o contenido..."
+                        class="w-full bg-gamingGray border border-gray-700 rounded-lg pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:border-rgbNeon transition-colors text-gray-200 placeholder-gray-600">
                 </div>
 
                 <!-- Ordenar -->
@@ -1081,9 +1087,11 @@
             .filter(p => p.categoria !== 'Tutorial de Inmersión')
             .map(formatearPublicacion);
         if (filtroArticulosActual !== 'todos') arts = arts.filter(a => a.categoria === filtroArticulosActual);
+        const termino = (document.getElementById('busqueda-articulos')?.value || '').trim().toLowerCase();
+        if (termino) arts = arts.filter(a => a.titulo.toLowerCase().includes(termino) || a.contenidoTextoPlano.includes(termino));
         c.innerHTML = arts.length
             ? arts.map(a => renderizarTarjeta(a, {mostrarLikes:true})).join('')
-            : '<p class="text-gray-500 text-sm col-span-full text-center py-12">No hay artículos en esta categoría todavía.</p>';
+            : '<p class="text-gray-500 text-sm col-span-full text-center py-12">No hay artículos que coincidan con tu búsqueda.</p>';
         lucide.createIcons();
     }
 
@@ -1107,11 +1115,13 @@
         let guias = publicacionesDinamicas
             .filter(p => p.categoria === 'Tutorial de Inmersión')
             .map(formatearPublicacion);
+        const termino = (document.getElementById('busqueda-guias')?.value || '').trim().toLowerCase();
+        if (termino) guias = guias.filter(a => a.titulo.toLowerCase().includes(termino) || a.contenidoTextoPlano.includes(termino));
         if (ordenGuiasActual === 'valoracion') guias.sort((a,b) => b.promedio - a.promedio || b.totalVotos - a.totalVotos);
         else guias.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
         c.innerHTML = guias.length
             ? guias.map(a => renderizarTarjeta(a)).join('')
-            : '<p class="text-gray-500 text-sm col-span-full text-center py-12">No hay guías publicadas todavía.</p>';
+            : '<p class="text-gray-500 text-sm col-span-full text-center py-12">No hay guías que coincidan con tu búsqueda.</p>';
         lucide.createIcons();
     }
 
