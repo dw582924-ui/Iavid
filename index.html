@@ -35,6 +35,26 @@
         /* Page transition */
         .page { animation: fadeIn 0.25s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        /* Mobile fixes */
+        @media (max-width: 767px) {
+            /* Evitar que el texto se desborde en cards */
+            .line-clamp-3 { -webkit-line-clamp: 2; }
+            /* Tap targets más grandes en móvil */
+            button, a { min-height: 36px; }
+            /* Modales ocupan casi toda la pantalla en móvil */
+            #articulo-modal > div,
+            #publicar-modal > div,
+            #staff-modal > div,
+            #auth-modal > div,
+            #hero-media-modal > div {
+                max-height: 95vh;
+                margin: auto;
+            }
+            /* Evitar zoom en inputs iOS */
+            input, textarea, select { font-size: 16px !important; }
+            /* Cards: asegurar que no se corten horizontalmente */
+            .grid { overflow-x: hidden; }
+        }
     </style>
 </head>
 <body class="bg-gamingDark text-gray-100 font-sans selection:bg-rgbPurple selection:text-white min-h-screen flex flex-col">
@@ -42,9 +62,9 @@
     <!-- ========================================== -->
     <!-- BARRA DE NAVEGACIÓN                        -->
     <!-- ========================================== -->
-    <nav class="sticky top-0 z-40 bg-gamingDark/90 backdrop-blur-md border-b border-purple-900/40 px-6 py-4 flex justify-between items-center">
+    <nav class="sticky top-0 z-40 bg-gamingDark/90 backdrop-blur-md border-b border-purple-900/40 px-4 sm:px-6 py-4 flex justify-between items-center">
         <div class="flex items-center space-x-2">
-            <button onclick="navegarA('inicio')" class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-rgbCyan via-rgbPurple to-rgbNeon hover:opacity-80 transition-opacity">IAVID</button>
+            <button onclick="navegarA('inicio')" class="text-xl sm:text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-rgbCyan via-rgbPurple to-rgbNeon hover:opacity-80 transition-opacity">IAVID</button>
         </div>
         <div class="hidden md:flex space-x-8 text-sm font-medium tracking-wide">
             <button onclick="navegarA('inicio')" id="nav-inicio" class="hover:text-rgbCyan transition-colors">Inicio</button>
@@ -53,25 +73,37 @@
             <button onclick="navegarA('noticias')" id="nav-noticias" class="hover:text-red-500 transition-colors">Noticias</button>
             <button onclick="navegarA('feedback')" id="nav-feedback" class="hover:text-rgbCyan transition-colors">Dar Feedback</button>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 sm:gap-3">
             <button data-rol-visible="publicador" onclick="abrirModalPublicar()"
-                class="hidden bg-gradient-to-r from-rgbNeon to-rgbCyan px-3 py-2 rounded-md font-bold text-xs tracking-wider uppercase hover:scale-105 transition-all">
+                class="hidden bg-gradient-to-r from-rgbNeon to-rgbCyan px-2.5 sm:px-3 py-2 rounded-md font-bold text-[10px] sm:text-xs tracking-wider uppercase hover:scale-105 transition-all whitespace-nowrap">
                 + Publicar
             </button>
             <button data-rol-visible="staff" onclick="abrirModalStaff()"
-                class="hidden bg-gamingGray border border-rgbPurple/50 px-3 py-2 rounded-md font-bold text-xs tracking-wider uppercase hover:border-rgbPurple transition-all">
-                Panel Staff
+                class="hidden bg-gamingGray border border-rgbPurple/50 px-2.5 sm:px-3 py-2 rounded-md font-bold text-[10px] sm:text-xs tracking-wider uppercase hover:border-rgbPurple transition-all whitespace-nowrap">
+                Staff
             </button>
             <div data-rol-visible="autenticado" class="hidden items-center gap-2">
-                <span id="nombre-usuario-actual" class="text-xs text-gray-400"></span>
-                <button onclick="cerrarSesion()" class="text-xs text-gray-500 hover:text-white underline">Salir</button>
+                <span id="nombre-usuario-actual" class="hidden sm:inline text-xs text-gray-400"></span>
+                <button onclick="cerrarSesion()" class="text-xs text-gray-500 hover:text-white underline whitespace-nowrap">Salir</button>
             </div>
             <button data-rol-visible="visitante" onclick="abrirModalAuth()"
-                class="bg-gamingGray border border-gray-700 px-3 py-2 rounded-md font-bold text-xs tracking-wider uppercase hover:border-rgbCyan transition-all">
+                class="bg-gamingGray border border-gray-700 px-2.5 sm:px-3 py-2 rounded-md font-bold text-[10px] sm:text-xs tracking-wider uppercase hover:border-rgbCyan transition-all whitespace-nowrap">
                 Ingresar
+            </button>
+            <button onclick="alternarMenuMovil()" id="btn-menu-movil" class="md:hidden bg-gamingGray border border-gray-700 p-2 rounded-md hover:border-rgbCyan transition-all">
+                <i data-lucide="menu" class="w-4 h-4"></i>
             </button>
         </div>
     </nav>
+
+    <!-- MENÚ MÓVIL DESPLEGABLE -->
+    <div id="menu-movil" class="hidden md:hidden sticky top-[60px] z-30 bg-gamingDark border-b border-purple-900/40 px-4 py-3 flex flex-col gap-1 text-sm font-medium">
+        <button onclick="navegarA('inicio')" class="text-left px-3 py-2.5 rounded-md hover:bg-gamingGray hover:text-rgbCyan transition-colors">Inicio</button>
+        <button onclick="navegarA('articulos')" class="text-left px-3 py-2.5 rounded-md hover:bg-gamingGray hover:text-rgbPurple transition-colors">Artículos</button>
+        <button onclick="navegarA('guias')" class="text-left px-3 py-2.5 rounded-md hover:bg-gamingGray hover:text-rgbNeon transition-colors">Guías Prácticas</button>
+        <button onclick="navegarA('noticias')" class="text-left px-3 py-2.5 rounded-md hover:bg-gamingGray hover:text-red-500 transition-colors">Noticias</button>
+        <button onclick="navegarA('feedback')" class="text-left px-3 py-2.5 rounded-md hover:bg-gamingGray hover:text-rgbCyan transition-colors">Dar Feedback</button>
+    </div>
 
     <!-- ========================================== -->
     <!-- CONTENEDOR PRINCIPAL DE PÁGINAS            -->
@@ -84,14 +116,14 @@
         <div id="pagina-inicio" class="page">
 
             <!-- HERO -->
-            <header class="max-w-7xl mx-auto px-6 py-12 lg:py-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                <div class="space-y-6">
+            <header class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 lg:py-20 grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 items-center">
+                <div class="space-y-4 sm:space-y-6">
                     <span class="inline-block bg-purple-900/30 text-rgbCyan border border-rgbCyan/30 text-xs px-3 py-1 rounded-full font-semibold uppercase tracking-widest">Inmersión & Usabilidad</span>
-                    <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight">
                         La Inteligencia Artificial <br>
                         <span class="text-transparent bg-clip-text bg-gradient-to-r from-rgbPurple via-rgbCyan to-rgbNeon">Redefiniendo la Inmersión</span>
                     </h1>
-                    <p class="text-gray-400 text-lg max-w-lg">
+                    <p class="text-gray-400 text-base sm:text-lg max-w-lg">
                         Explora cómo las mecánicas avanzadas de comportamiento de NPCs y sistemas interactivos transforman los mundos virtuales. Aprende las metodologías para lograr una verdadera inmersión jugable.
                     </p>
                 </div>
@@ -123,64 +155,64 @@
             </header>
 
             <!-- INTRO -->
-            <section class="bg-gamingGray/40 border-y border-gray-800/60 py-12">
-                <div class="max-w-4xl mx-auto px-6 text-center space-y-4">
-                    <h2 class="text-xl font-bold uppercase tracking-wider text-rgbPurple">¿Qué es IAVID?</h2>
-                    <p class="text-gray-300 leading-relaxed">
+            <section class="bg-gamingGray/40 border-y border-gray-800/60 py-8 sm:py-12">
+                <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center space-y-4">
+                    <h2 class="text-lg sm:text-xl font-bold uppercase tracking-wider text-rgbPurple">¿Qué es IAVID?</h2>
+                    <p class="text-gray-300 text-sm sm:text-base leading-relaxed">
                         Nacemos con el objetivo de desglosar el comportamiento técnico de los entornos de juego. No solo analizamos críticamente cómo interactúan las entidades o los enemigos, sino que te mostramos pedagógicamente cómo estructurar las metodologías lógicas para implementar esa inmersión interactiva en tus propias interfaces y proyectos académicos.
                     </p>
                 </div>
             </section>
 
             <!-- TOP 6 ARTÍCULOS MÁS REACCIONADOS -->
-            <section id="top-reacciones-seccion" class="max-w-7xl mx-auto px-6 pt-16 space-y-6 hidden">
-                <div class="flex items-end justify-between">
+            <section id="top-reacciones-seccion" class="max-w-7xl mx-auto px-4 sm:px-6 pt-12 sm:pt-16 space-y-6 hidden">
+                <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
                     <div>
-                        <h2 class="text-2xl font-extrabold tracking-tight flex items-center gap-2">
+                        <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight flex items-center gap-2">
                             <i data-lucide="flame" class="w-5 h-5 text-rgbNeon"></i>
                             Artículos más reaccionados
                         </h2>
                         <p class="text-gray-400 text-sm mt-1">Los 6 artículos con más likes de la comunidad.</p>
                     </div>
-                    <button onclick="navegarA('articulos')" class="text-xs text-rgbCyan hover:underline flex items-center gap-1">
+                    <button onclick="navegarA('articulos')" class="text-xs text-rgbCyan hover:underline flex items-center gap-1 self-start sm:self-auto">
                         Ver todos <i data-lucide="arrow-right" class="w-3 h-3"></i>
                     </button>
                 </div>
-                <div id="contenedor-top-reacciones" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+                <div id="contenedor-top-reacciones" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"></div>
             </section>
 
             <!-- TOP 6 GUÍAS MEJOR VALORADAS -->
-            <section id="top-guias-seccion" class="max-w-7xl mx-auto px-6 pt-16 pb-16 space-y-6 hidden">
-                <div class="flex items-end justify-between">
+            <section id="top-guias-seccion" class="max-w-7xl mx-auto px-4 sm:px-6 pt-12 sm:pt-16 pb-12 sm:pb-16 space-y-6 hidden">
+                <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
                     <div>
-                        <h2 class="text-2xl font-extrabold tracking-tight flex items-center gap-2">
+                        <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight flex items-center gap-2">
                             <i data-lucide="star" class="w-5 h-5 text-yellow-400"></i>
                             Guías mejor valoradas
                         </h2>
                         <p class="text-gray-400 text-sm mt-1">Las 6 guías con mayor puntuación de la comunidad.</p>
                     </div>
-                    <button onclick="navegarA('guias')" class="text-xs text-rgbNeon hover:underline flex items-center gap-1">
+                    <button onclick="navegarA('guias')" class="text-xs text-rgbNeon hover:underline flex items-center gap-1 self-start sm:self-auto">
                         Ver todas <i data-lucide="arrow-right" class="w-3 h-3"></i>
                     </button>
                 </div>
-                <div id="contenedor-top-guias" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+                <div id="contenedor-top-guias" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"></div>
             </section>
 
             <!-- ÚLTIMAS NOTICIAS -->
-            <section id="top-noticias-seccion" class="max-w-7xl mx-auto px-6 pt-16 pb-16 space-y-6 hidden">
-                <div class="flex items-end justify-between">
+            <section id="top-noticias-seccion" class="max-w-7xl mx-auto px-4 sm:px-6 pt-12 sm:pt-16 pb-12 sm:pb-16 space-y-6 hidden">
+                <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
                     <div>
-                        <h2 class="text-2xl font-extrabold tracking-tight flex items-center gap-2">
+                        <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight flex items-center gap-2">
                             <i data-lucide="newspaper" class="w-5 h-5 text-red-500"></i>
                             Últimas noticias
                         </h2>
                         <p class="text-gray-400 text-sm mt-1">Las noticias más recientes de la comunidad.</p>
                     </div>
-                    <button onclick="navegarA('noticias')" class="text-xs text-red-500 hover:underline flex items-center gap-1">
+                    <button onclick="navegarA('noticias')" class="text-xs text-red-500 hover:underline flex items-center gap-1 self-start sm:self-auto">
                         Ver todas <i data-lucide="arrow-right" class="w-3 h-3"></i>
                     </button>
                 </div>
-                <div id="contenedor-top-noticias" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+                <div id="contenedor-top-noticias" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"></div>
             </section>
 
         </div>
@@ -189,17 +221,17 @@
         <!-- PÁGINA: ARTÍCULOS             -->
         <!-- ============================== -->
         <div id="pagina-articulos" class="page hidden">
-            <div class="max-w-7xl mx-auto px-6 py-12 space-y-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-6 sm:space-y-8">
                 <!-- Cabecera de página -->
-                <div class="flex items-center gap-4 border-b border-gray-800/60 pb-6">
+                <div class="flex flex-wrap items-center gap-3 sm:gap-4 border-b border-gray-800/60 pb-6">
                     <button onclick="navegarA('inicio')" class="flex items-center gap-2 text-gray-400 hover:text-white text-sm transition-colors group">
                         <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
                         Volver al inicio
                     </button>
-                    <div class="w-px h-5 bg-gray-700"></div>
-                    <div>
-                        <h1 class="text-3xl font-extrabold tracking-tight flex items-center gap-3">
-                            <i data-lucide="file-text" class="w-6 h-6 text-rgbPurple"></i>
+                    <div class="hidden sm:block w-px h-5 bg-gray-700"></div>
+                    <div class="w-full sm:w-auto">
+                        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight flex items-center gap-3">
+                            <i data-lucide="file-text" class="w-5 h-5 sm:w-6 sm:h-6 text-rgbPurple"></i>
                             Artículos
                         </h1>
                         <p class="text-gray-400 text-sm mt-1">Análisis técnicos y ensayos sobre IA en videojuegos</p>
@@ -222,7 +254,7 @@
                     <button onclick="filtrarPaginaArticulos('General')" id="filtro-art-general" class="filtro-art-btn px-4 py-1.5 rounded-full text-xs font-bold border border-gray-700 text-gray-400 hover:border-rgbCyan hover:text-rgbCyan transition-colors">General</button>
                 </div>
 
-                <div id="contenedor-pagina-articulos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+                <div id="contenedor-pagina-articulos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"></div>
             </div>
         </div>
 
@@ -230,17 +262,17 @@
         <!-- PÁGINA: GUÍAS PRÁCTICAS        -->
         <!-- ============================== -->
         <div id="pagina-guias" class="page hidden">
-            <div class="max-w-7xl mx-auto px-6 py-12 space-y-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-6 sm:space-y-8">
                 <!-- Cabecera de página -->
-                <div class="flex items-center gap-4 border-b border-gray-800/60 pb-6">
+                <div class="flex flex-wrap items-center gap-3 sm:gap-4 border-b border-gray-800/60 pb-6">
                     <button onclick="navegarA('inicio')" class="flex items-center gap-2 text-gray-400 hover:text-white text-sm transition-colors group">
                         <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
                         Volver al inicio
                     </button>
-                    <div class="w-px h-5 bg-gray-700"></div>
-                    <div>
-                        <h1 class="text-3xl font-extrabold tracking-tight flex items-center gap-3">
-                            <i data-lucide="library" class="w-6 h-6 text-rgbNeon"></i>
+                    <div class="hidden sm:block w-px h-5 bg-gray-700"></div>
+                    <div class="w-full sm:w-auto">
+                        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight flex items-center gap-3">
+                            <i data-lucide="library" class="w-5 h-5 sm:w-6 sm:h-6 text-rgbNeon"></i>
                             Guías Prácticas
                         </h1>
                         <p class="text-gray-400 text-sm mt-1">Tutoriales de inmersión paso a paso con metodologías aplicables</p>
@@ -256,13 +288,13 @@
                 </div>
 
                 <!-- Ordenar -->
-                <div class="flex items-center gap-3">
+                <div class="flex flex-wrap items-center gap-2 sm:gap-3">
                     <span class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Ordenar:</span>
                     <button onclick="ordenarGuias('valoracion')" id="orden-valoracion" class="px-4 py-1.5 rounded-full text-xs font-bold border border-yellow-500/60 bg-yellow-500/10 text-yellow-400">Mejor valoradas</button>
                     <button onclick="ordenarGuias('recientes')" id="orden-recientes" class="px-4 py-1.5 rounded-full text-xs font-bold border border-gray-700 text-gray-400 hover:border-gray-500 transition-colors">Más recientes</button>
                 </div>
 
-                <div id="contenedor-pagina-guias" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+                <div id="contenedor-pagina-guias" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"></div>
             </div>
         </div>
 
@@ -270,17 +302,17 @@
         <!-- PÁGINA: NOTICIAS               -->
         <!-- ============================== -->
         <div id="pagina-noticias" class="page hidden">
-            <div class="max-w-7xl mx-auto px-6 py-12 space-y-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-6 sm:space-y-8">
                 <!-- Cabecera de página -->
-                <div class="flex items-center gap-4 border-b border-gray-800/60 pb-6">
+                <div class="flex flex-wrap items-center gap-3 sm:gap-4 border-b border-gray-800/60 pb-6">
                     <button onclick="navegarA('inicio')" class="flex items-center gap-2 text-gray-400 hover:text-white text-sm transition-colors group">
                         <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
                         Volver al inicio
                     </button>
-                    <div class="w-px h-5 bg-gray-700"></div>
-                    <div>
-                        <h1 class="text-3xl font-extrabold tracking-tight flex items-center gap-3">
-                            <i data-lucide="newspaper" class="w-6 h-6 text-red-500"></i>
+                    <div class="hidden sm:block w-px h-5 bg-gray-700"></div>
+                    <div class="w-full sm:w-auto">
+                        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight flex items-center gap-3">
+                            <i data-lucide="newspaper" class="w-5 h-5 sm:w-6 sm:h-6 text-red-500"></i>
                             Noticias
                         </h1>
                         <p class="text-gray-400 text-sm mt-1">Lo último de la comunidad y el mundo de la IA en videojuegos</p>
@@ -295,7 +327,7 @@
                         class="w-full bg-gamingGray border border-gray-700 rounded-lg pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:border-red-500 transition-colors text-gray-200 placeholder-gray-600">
                 </div>
 
-                <div id="contenedor-pagina-noticias" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+                <div id="contenedor-pagina-noticias" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"></div>
             </div>
         </div>
 
@@ -303,24 +335,24 @@
         <!-- PÁGINA: DAR FEEDBACK           -->
         <!-- ============================== -->
         <div id="pagina-feedback" class="page hidden">
-            <div class="max-w-3xl mx-auto px-6 py-12 space-y-8">
+            <div class="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-6 sm:space-y-8">
                 <!-- Cabecera de página -->
-                <div class="flex items-center gap-4 border-b border-gray-800/60 pb-6">
+                <div class="flex flex-wrap items-center gap-3 sm:gap-4 border-b border-gray-800/60 pb-6">
                     <button onclick="navegarA('inicio')" class="flex items-center gap-2 text-gray-400 hover:text-white text-sm transition-colors group">
                         <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
                         Volver al inicio
                     </button>
-                    <div class="w-px h-5 bg-gray-700"></div>
-                    <div>
-                        <h1 class="text-3xl font-extrabold tracking-tight flex items-center gap-3">
-                            <i data-lucide="message-square" class="w-6 h-6 text-rgbCyan"></i>
+                    <div class="hidden sm:block w-px h-5 bg-gray-700"></div>
+                    <div class="w-full sm:w-auto">
+                        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight flex items-center gap-3">
+                            <i data-lucide="message-square" class="w-5 h-5 sm:w-6 sm:h-6 text-rgbCyan"></i>
                             ¿Qué opinas?
                         </h1>
                         <p class="text-gray-400 text-sm mt-1">Tu opinión nos importa, ayúdanos a mejorar con tus comentarios y sugerencias.</p>
                     </div>
                 </div>
 
-                <div class="bg-gradient-to-r from-purple-950/20 to-cyan-950/20 rounded-2xl border border-purple-500/30 p-8 space-y-6 relative overflow-hidden">
+                <div class="bg-gradient-to-r from-purple-950/20 to-cyan-950/20 rounded-2xl border border-purple-500/30 p-5 sm:p-8 space-y-6 relative overflow-hidden">
                     <div class="absolute top-0 right-0 p-3 bg-rgbPurple/20 text-rgbPurple rounded-bl-xl text-xs font-mono tracking-wider font-bold uppercase">Feedback</div>
                     <form action="https://formspree.io/f/xzdlpbgz" method="POST" onsubmit="manejarFormspree(event)" class="space-y-4">
                         <div>
@@ -366,15 +398,15 @@
             <form id="form-auth" onsubmit="manejarEnvioAuth(event)" class="p-6 space-y-4">
                 <div id="auth-campo-nombre" class="hidden">
                     <label class="block text-xs uppercase tracking-wider text-gray-400 mb-1.5 font-semibold">Nombre</label>
-                    <input type="text" name="nombre" class="w-full bg-gamingDark border border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-rgbCyan text-gray-200">
+                    <input type="text" name="nombre" class="w-full bg-gamingDark border border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-rgbCyan text-gray-200" style="font-size:16px">
                 </div>
                 <div>
                     <label class="block text-xs uppercase tracking-wider text-gray-400 mb-1.5 font-semibold">Correo</label>
-                    <input type="email" name="email" required class="w-full bg-gamingDark border border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-rgbCyan text-gray-200">
+                    <input type="email" name="email" required class="w-full bg-gamingDark border border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-rgbCyan text-gray-200" style="font-size:16px">
                 </div>
                 <div>
                     <label class="block text-xs uppercase tracking-wider text-gray-400 mb-1.5 font-semibold">Contraseña</label>
-                    <input type="password" name="password" required minlength="6" class="w-full bg-gamingDark border border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-rgbCyan text-gray-200">
+                    <input type="password" name="password" required minlength="6" class="w-full bg-gamingDark border border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-rgbCyan text-gray-200" style="font-size:16px">
                 </div>
                 <p id="auth-estado" class="text-xs hidden"></p>
                 <button type="submit" id="auth-btn" class="w-full bg-gradient-to-r from-rgbPurple to-rgbCyan py-2.5 rounded-lg text-sm font-bold tracking-wider uppercase hover:scale-[1.02] transition-all">
@@ -489,25 +521,25 @@
     </div>
 
     <!-- MODAL ARTÍCULO / GUÍA -->
-    <div id="articulo-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
-        <div class="bg-gamingGray border border-gray-800 max-w-2xl w-full rounded-2xl overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh]">
-            <div class="p-6 border-b border-gray-800/60 flex justify-between items-start bg-black/20">
-                <div>
+    <div id="articulo-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
+        <div class="bg-gamingGray border border-gray-800 max-w-2xl w-full rounded-2xl overflow-hidden shadow-2xl relative flex flex-col max-h-[92vh]">
+            <div class="p-4 sm:p-6 border-b border-gray-800/60 flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-start bg-black/20">
+                <div class="min-w-0 pr-2">
                     <span id="modal-categoria" class="text-xs font-bold uppercase tracking-wider text-rgbCyan">Categoría</span>
-                    <h3 id="modal-titulo" class="text-xl font-bold mt-1 text-white">Título</h3>
+                    <h3 id="modal-titulo" class="text-lg sm:text-xl font-bold mt-1 text-white leading-snug">Título</h3>
                     <p id="modal-fecha" class="text-xs text-gray-500 mt-1">Fecha</p>
                 </div>
-                <div class="flex items-center gap-2 flex-shrink-0">
+                <div class="flex items-center gap-2 flex-shrink-0 self-start">
                     <!-- Botón like (artículos) -->
                     <button id="modal-btn-like" onclick="alternarLikeArticuloActual()" class="hidden text-gray-400 hover:text-rgbPurple bg-gray-800/50 p-2 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-semibold">
                         <i data-lucide="heart" class="w-4 h-4"></i>
                         <span id="modal-likes-count">0</span>
                     </button>
                     <!-- Valoración estrellas (guías) -->
-                    <div id="modal-estrellas-bloque" class="hidden flex items-center gap-1">
-                        <span class="text-xs text-gray-400 mr-1">Tu valoración:</span>
+                    <div id="modal-estrellas-bloque" class="hidden flex items-center gap-1 flex-wrap">
+                        <span class="text-xs text-gray-400">Tu valoración:</span>
                         <div id="modal-estrellas" class="flex gap-0.5"></div>
-                        <span id="modal-promedio-label" class="text-xs text-yellow-400 ml-2"></span>
+                        <span id="modal-promedio-label" class="text-xs text-yellow-400"></span>
                     </div>
                     <button onclick="cerrarModal()" class="text-gray-400 hover:text-white bg-gray-800/50 p-2 rounded-lg transition-colors">
                         <i data-lucide="x" class="w-5 h-5"></i>
@@ -515,8 +547,8 @@
                 </div>
             </div>
             <div class="overflow-y-auto flex-1 min-h-0">
-                <div id="modal-contenido" class="p-6 space-y-4 text-gray-300 text-sm leading-relaxed"></div>
-                <div class="px-6 pb-4 border-t border-gray-800/60 pt-4">
+                <div id="modal-contenido" class="p-4 sm:p-6 space-y-4 text-gray-300 text-sm leading-relaxed"></div>
+                <div class="px-4 sm:px-6 pb-4 border-t border-gray-800/60 pt-4">
                     <p class="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-3 flex items-center gap-2">
                         <i data-lucide="message-circle" class="w-4 h-4 text-rgbCyan"></i>
                         Comentarios de la comunidad
