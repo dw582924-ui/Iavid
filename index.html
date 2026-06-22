@@ -50,7 +50,7 @@
             <button onclick="navegarA('inicio')" id="nav-inicio" class="hover:text-rgbCyan transition-colors">Inicio</button>
             <button onclick="navegarA('articulos')" id="nav-articulos" class="hover:text-rgbPurple transition-colors">Artículos</button>
             <button onclick="navegarA('guias')" id="nav-guias" class="hover:text-rgbNeon transition-colors">Guías Prácticas</button>
-            <a href="#feedback-seccion" class="text-gray-400 hover:text-white transition-colors">Dar Feedback</a>
+            <button onclick="navegarA('feedback')" id="nav-feedback" class="hover:text-rgbCyan transition-colors">Dar Feedback</button>
         </div>
         <div class="flex items-center gap-3">
             <button data-rol-visible="publicador" onclick="abrirModalPublicar()"
@@ -165,33 +165,6 @@
                 <div id="contenedor-top-guias" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
             </section>
 
-            <!-- FEEDBACK -->
-            <section id="feedback-seccion" class="max-w-3xl mx-auto px-6 py-12 mb-16 w-full">
-                <div class="bg-gradient-to-r from-purple-950/20 to-cyan-950/20 rounded-2xl border border-purple-500/30 p-8 space-y-6 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-3 bg-rgbPurple/20 text-rgbPurple rounded-bl-xl text-xs font-mono tracking-wider font-bold uppercase">Feedback</div>
-                    <div class="space-y-2">
-                        <h3 class="text-xl font-bold flex items-center space-x-2">
-                            <i data-lucide="message-square" class="text-rgbCyan w-5 h-5"></i>
-                            <span>¿Qué opinas de esta versión provisional?</span>
-                        </h3>
-                        <p class="text-gray-400 text-sm">Tu opinión sobre la estética gaming con luces RGB y el enfoque interactivo nos ayuda a validar la usabilidad de la interfaz.</p>
-                    </div>
-                    <form action="https://formspree.io/f/xzdlpbgz" method="POST" onsubmit="manejarFormspree(event)" class="space-y-4">
-                        <div>
-                            <label class="block text-xs uppercase tracking-wider text-gray-400 mb-2 font-semibold">Tu sugerencia o comentario:</label>
-                            <textarea name="comentario" id="feedback-texto" rows="3" required
-                                class="w-full bg-gamingDark border border-gray-700 rounded-lg p-3 text-sm focus:outline-none focus:border-rgbCyan transition-colors text-gray-200 placeholder-gray-600"
-                                placeholder="Ej: Me gusta la paleta de colores oscuros, pero añadiría un buscador más grande..."></textarea>
-                        </div>
-                        <input type="hidden" name="pagina" value="inicio">
-                        <p id="feedback-estado" class="text-xs hidden"></p>
-                        <button type="submit" id="feedback-btn"
-                            class="w-full bg-transparent border border-rgbNeon text-rgbNeon shadow-neon-glow py-2.5 rounded-lg text-sm font-bold tracking-wider uppercase hover:bg-rgbNeon hover:text-gamingDark transition-all">
-                            Enviar Opinión
-                        </button>
-                    </form>
-                </div>
-            </section>
         </div>
 
         <!-- ============================== -->
@@ -272,6 +245,47 @@
                 </div>
 
                 <div id="contenedor-pagina-guias" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+            </div>
+        </div>
+
+        <!-- ============================== -->
+        <!-- PÁGINA: DAR FEEDBACK           -->
+        <!-- ============================== -->
+        <div id="pagina-feedback" class="page hidden">
+            <div class="max-w-3xl mx-auto px-6 py-12 space-y-8">
+                <!-- Cabecera de página -->
+                <div class="flex items-center gap-4 border-b border-gray-800/60 pb-6">
+                    <button onclick="navegarA('inicio')" class="flex items-center gap-2 text-gray-400 hover:text-white text-sm transition-colors group">
+                        <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
+                        Volver al inicio
+                    </button>
+                    <div class="w-px h-5 bg-gray-700"></div>
+                    <div>
+                        <h1 class="text-3xl font-extrabold tracking-tight flex items-center gap-3">
+                            <i data-lucide="message-square" class="w-6 h-6 text-rgbCyan"></i>
+                            ¿Qué opinas?
+                        </h1>
+                        <p class="text-gray-400 text-sm mt-1">Tu opinión nos importa, ayúdanos a mejorar con tus comentarios y sugerencias.</p>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-purple-950/20 to-cyan-950/20 rounded-2xl border border-purple-500/30 p-8 space-y-6 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-3 bg-rgbPurple/20 text-rgbPurple rounded-bl-xl text-xs font-mono tracking-wider font-bold uppercase">Feedback</div>
+                    <form action="https://formspree.io/f/xzdlpbgz" method="POST" onsubmit="manejarFormspree(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-gray-400 mb-2 font-semibold">Tu sugerencia o comentario:</label>
+                            <textarea name="comentario" id="feedback-texto" rows="5" required
+                                class="w-full bg-gamingDark border border-gray-700 rounded-lg p-3 text-sm focus:outline-none focus:border-rgbCyan transition-colors text-gray-200 placeholder-gray-600"
+                                placeholder="Ej: Me gusta la paleta de colores oscuros, pero añadiría un buscador más grande..."></textarea>
+                        </div>
+                        <input type="hidden" name="pagina" value="feedback">
+                        <p id="feedback-estado" class="text-xs hidden"></p>
+                        <button type="submit" id="feedback-btn"
+                            class="w-full bg-transparent border border-rgbNeon text-rgbNeon shadow-neon-glow py-2.5 rounded-lg text-sm font-bold tracking-wider uppercase hover:bg-rgbNeon hover:text-gamingDark transition-all">
+                            Enviar Opinión
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
 
@@ -1145,7 +1159,7 @@
 
     function mostrarPagina(pagina) {
         // Oculta todas las páginas
-        ['inicio','articulos','guias'].forEach(p => {
+        ['inicio','articulos','guias','feedback'].forEach(p => {
             const el = document.getElementById(`pagina-${p}`);
             if (el) { el.classList.add('hidden'); el.classList.remove('page'); }
         });
@@ -1156,11 +1170,13 @@
         document.getElementById('nav-inicio')?.classList.toggle('text-rgbCyan', pagina==='inicio');
         document.getElementById('nav-articulos')?.classList.toggle('text-rgbPurple', pagina==='articulos');
         document.getElementById('nav-guias')?.classList.toggle('text-rgbNeon', pagina==='guias');
+        document.getElementById('nav-feedback')?.classList.toggle('text-rgbCyan', pagina==='feedback');
         // Scroll al tope
         window.scrollTo({ top: 0, behavior: 'smooth' });
         // Renderiza contenido de la página
         if (pagina === 'articulos') renderizarPaginaArticulos();
         if (pagina === 'guias') renderizarPaginaGuias();
+        if (pagina === 'feedback') lucide.createIcons();
     }
 
     // Escucha cambios de hash (botón Atrás/Adelante del navegador)
