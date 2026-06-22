@@ -1279,8 +1279,16 @@
     // ============================================================
     // NAVEGACIÓN SPA CON HASH
     // ============================================================
+    function alternarMenuMovil() {
+        const menu = document.getElementById('menu-movil');
+        menu.classList.toggle('hidden');
+    }
+    function cerrarMenuMovil() {
+        document.getElementById('menu-movil')?.classList.add('hidden');
+    }
+
     function navegarA(pagina) {
-        // Cambia el hash (actualiza URL sin recargar)
+        cerrarMenuMovil();
         location.hash = pagina === 'inicio' ? '' : pagina;
         mostrarPagina(pagina);
     }
