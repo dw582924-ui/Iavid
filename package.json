@@ -1,0 +1,13 @@
+{
+  "name": "iavid",
+  "version": "1.0.0",
+  "description": "IAVID - Inteligencia Artificial en Videojuegos",
+  "private": true,
+  "scripts": {
+    "dev": "npx serve .",
+    "build": "echo 'No build step required for static HTML'"
+  },
+  "dependencies": {
+    "@vercel/analytics": "^1.1.1"
+  }
+}
